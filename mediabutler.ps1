@@ -571,7 +571,6 @@ function setupSonarr($ans) {
 function main () {
 	Write-Host "Welcome to the MediaButler setup utility!"
 	checkUserData
-	$userDataTest
 	checkPlexAuth
 	chooseServer
 	getMbURL
