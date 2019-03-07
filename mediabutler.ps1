@@ -5,6 +5,25 @@ $plexLoginURL = "https://plex.tv/users/sign_in.json"
 $mbLoginURL = "https://auth.mediabutler.io/login"
 $mbDiscoverURL = "https://auth.mediabutler.io/login/discover"
 
+function Write-ColorOutput($ForegroundColor) {
+    # save the current color
+    $fc = $host.UI.RawUI.ForegroundColor
+
+    # set the new color
+    $host.UI.RawUI.ForegroundColor = $ForegroundColor
+
+    # output
+    if ($args) {
+        Write-Output $args
+    }
+    else {
+        $input | Write-Output
+    }
+
+    # restore the original color
+    $host.UI.RawUI.ForegroundColor = $fc
+}
+
 # Function for logging into Plex with a Username/Password
 # This will loop until valid credentials are provided
 # Returns Plex authToken
@@ -229,7 +248,6 @@ function getMbURL() {
 	}
 }
 
-
 # Print the main menu
 # Returns selection
 function mainMenu() {
@@ -351,14 +369,16 @@ function setupTautulli() {
 	Write-Host ""
 	Write-Host "Please enter your Tautulli API key"
 	do {
-		$tauAPI = Read-Host -Prompt "API"
+		$tauAPI = Read-Host -Prompt 'API' -AsSecureString
+		$credentials = New-Object System.Management.Automation.PSCredential -ArgumentList "apiKey", $tauAPI
+		$tauAPI = $credentials.GetNetworkCredential().Password
 		Write-Host ""
 		Write-Host "Testing that the provided Tautulli API Key is valid..."
 		try {
 			$response = Invoke-WebRequest -Uri $tauURL"api/v2?apikey="$tauAPI"&cmd=arnold"
 			$response = $response | ConvertFrom-Json
 		} catch {}
-		if ($response.response.message -eq $null) {
+		if ($null -eq $response.response.message) {
 			Write-Host -ForegroundColor Green "Success!"
 			$valid = $true
 		} else {
@@ -485,7 +505,9 @@ function setupSonarr($ans) {
 	Write-Host "Please enter your Sonarr API key"
 	do {
 		$err = ""
-		$sonarrAPI = Read-Host -Prompt "API"
+		$sonarrAPI = Read-Host -Prompt 'API' -AsSecureString
+		$credentials = New-Object System.Management.Automation.PSCredential -ArgumentList "apiKey", $sonarrAPI
+		$sonarrAPI = $credentials.GetNetworkCredential().Password
 		Write-Host ""
 		Write-Host "Testing that the provided Sonarr API Key is valid..."
 		try {
@@ -612,7 +634,9 @@ function setupRadarr($ans) {
 	Write-Host "Please enter your Radarr API key"
 	do {
 		$err = ""
-		$radarrAPI = Read-Host -Prompt "API"
+		$radarrAPI = Read-Host -Prompt 'API' -AsSecureString
+		$credentials = New-Object System.Management.Automation.PSCredential -ArgumentList "apiKey", $radarrAPI
+		$radarrAPI = $credentials.GetNetworkCredential().Password
 		Write-Host ""
 		Write-Host "Testing that the provided Radarr API Key is valid..."
 		try {
