@@ -101,16 +101,14 @@ function testMB($url) {
 # Check if userData.json exists
 # Returns the array of the User Data
 function checkUserData () {
-	$userData = @{}
 	if (Test-Path $userDataPath -PathType Leaf) {
 		$fileIn = Get-Content -Raw -Path $userDataPath | ConvertFrom-Json
 		$fileIn.psobject.properties | Foreach-Object { $userData[$_.Name] = $_.Value }
 	}
-	$userData
 }
 
 # Check if Plex Auth Token is saved in userData and if not print menu and get it from user
-function checkPlexAuth($userData) {
+function checkPlexAuth() {
 	if ([string]::IsNullOrEmpty($userData.authToken)) {
 		Write-Host "First thing we need are your Plex credentials so please choose from one of the following options:"
 		Write-Host ""
@@ -146,13 +144,13 @@ function checkPlexAuth($userData) {
 }
 
 # Choose Server for MediaButler
-function chooseServer($userData) {
+function chooseServer() {
 	if (([string]::IsNullOrEmpty($userData.machineId)) -Or ([string]::IsNullOrEmpty($userData.mbToken))) {
 		if ([string]::IsNullOrEmpty($mbLoginResponse)) {
 			$mbLoginResponse = mbLogin $userdata.authToken
 		}
 		# Print Owned Servers and create menu with them
-		$j = 0
+		$i = 0
 		Write-Host ""
 		Write-Host "Please choose which Plex Server you would like to setup MediaButler for:"
 		$menu = @{}
@@ -163,10 +161,10 @@ function chooseServer($userData) {
 				$owner = $false
 			}
 			if($owner) {
-				$j++
-				Write-Host "$j. $($server.name)"
+				$i++
+				Write-Host "$i. $($server.name)"
 				$serverInfo = @{"serverName"="$($server.name)"; "machineId"="$($server.machineId)"; "mbToken"="$($server.token)";};
-				$menu.Add($j,($serverInfo))
+				$menu.Add($i,($serverInfo))
 			}
 		}
 		[int]$ans = Read-Host 'Enter selection'
@@ -178,7 +176,7 @@ function chooseServer($userData) {
 }
 
 # Get MediaButler URL
-function getMbURL ($userData) {
+function getMbURL () {
 	if ([string]::IsNullOrEmpty($userData.mbURL)) {
 		# Test if localhost is MediaButler server
 		$isMB = $false;
@@ -257,7 +255,7 @@ function exitMenu() {
 }
 
 # Print the Sonarr menu and get response
-function sonarrMenu($userData) {
+function sonarrMenu() {
 	Write-Host "*****************************************"
 	Write-Host "*           Sonarr Setup Menu           *"
 	Write-Host "*****************************************"
@@ -283,7 +281,7 @@ function sonarrMenu($userData) {
 }
 
 # Print the Radarr menu and get response
-function radarrMenu($userData) {
+function radarrMenu() {
 	Write-Host "*****************************************"
 	Write-Host "*           Radarr Setup Menu           *"
 	Write-Host "*****************************************"
@@ -310,7 +308,7 @@ function radarrMenu($userData) {
 }
 
 # Function to get the Tautulli information, test it and send it to the MediaButler server
-function setupTautulli($userData) {
+function setupTautulli() {
 	# Tautulli URL
 	Write-Host ""
 	Write-Host "Please enter your Tautulli URL (IE: http://127.0.0.1:8181/tautulli/):"
@@ -403,7 +401,6 @@ function arrProfiles($response) {
 	Write-Host "Please choose which profile you would like to set as the default for MediaButler:"
 	$menu = @{}
 	$i = 0
-	#$profile = ""
 	foreach ($profile in $response) { 
 		$i++
 		Write-Host "$i. $($profile.name)"
@@ -412,16 +409,39 @@ function arrProfiles($response) {
 	do {
 		[int]$ans = Read-Host 'Profile'
 		if (($ans -ge 1) -And ($ans -le $i)) {
+			$valid = $true
 			$menu.Item($ans)
 		} else {
 			$valid = $false
+			Write-Host -ForegroundColor Red -BackgroundColor Black "Invalid Response."
 		}
 	} while(-Not ($valid))
-	#$profile
+}
+
+function arrRootDir($response) {
+	Write-Host ""
+	Write-Host "Please choose which root directory you would like to set as the default for MediaButler:"
+	$menu = @{}
+	$i = 0
+	foreach ($rootDir in $response) { 
+		$i++
+		Write-Host "$i. $($rootDir.path)"
+		$menu.Add($i,($rootDir.path))
+	}
+	do {
+		[int]$ans = Read-Host 'Profile'
+		if (($ans -ge 1) -And ($ans -le $i)) {
+			$valid = $true
+			$menu.Item($ans)
+		} else {
+			$valid = $false
+			Write-Host -ForegroundColor Red -BackgroundColor Black "Invalid Response."
+		}
+	} while(-Not ($valid))
 }
 
 # Function to set up Sonarr
-function setupSonarr($ans, $userData) {
+function setupSonarr($ans) {
 	# Sonarr URL
 	Write-Host ""
 	Write-Host "Please enter your Sonarr URL (IE: http://127.0.0.1:8989/sonarr/):"
@@ -470,6 +490,7 @@ function setupSonarr($ans, $userData) {
 		}
 	} while (-Not($valid))
 
+	# Default Profile
 	try {
 		$headers = @{
 			"X-Api-Key"=$sonarrAPI
@@ -477,15 +498,83 @@ function setupSonarr($ans, $userData) {
 		$response = Invoke-WebRequest -Uri $sonarrURL"api/profile" -Headers $headers
 		$response = $response | ConvertFrom-Json
 		$sonarrProfile = arrProfiles $response
+	} catch {
+		Write-Host -ForegroundColor Red -BackgroundColor Black "Something went wrong..."
+	}
+
+	# Default Root Directory
+	try {
+		$headers = @{
+			"X-Api-Key"=$sonarrAPI
+		};
+		$response = Invoke-WebRequest -Uri $sonarrURL"api/rootfolder" -Headers $headers
+		$response = $response | ConvertFrom-Json
+		$sonarrRootDir = arrRootDir $response
+	} catch {
+		Write-Host -ForegroundColor Red -BackgroundColor Black "Something went wrong..."
+	}
+
+	# Set MediaButler formatting
+	if($ans -eq 1) {
+		$endpoint = "sonarr"
+	} elseif ($ans -eq 2) {
+		$endpoint = "sonarr4k"
+	}
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid; 
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	$body = @{
+		"url"=$sonarrURL;
+		"apikey"=$sonarrAPI;
+		"defaultProfile"=$sonarrProfile
+		"defaultRoot"=$sonarrRootDir
+	};
+	$body = $body | ConvertTo-Json
+	$formattedURL = [System.String]::Concat(($userData.mbURL), 'configure/', ($endpoint))
+
+	# Test and Save to MediaButler
+	Write-Host ""
+	Write-Host "Testing the full Sonarr config for MediaButler..."
+	try {
+		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body
+		$response = $response | ConvertFrom-Json
 	} catch {}
+	if ($response.message -eq "success") {
+		Write-Host -ForegroundColor Green "Success!"
+		Write-Host ""
+		Write-Host "Saving the Sonarr config to MediaButler..."
+		try {
+			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body
+			$response = $response | ConvertFrom-Json
+		} catch {}
+		if ($response.message -eq "success") {
+			Write-Host -ForegroundColor Green "Done! Sonarr has been successfully configured for"
+			Write-Host -ForegroundColor Green "MediaButler with the"$userData.serverName"Plex server."
+			Start-Sleep -s 3
+			Write-Host Returning you to the Main Menu...
+			sonarrMenu $userData
+		}  elseif ($response.message -ne "success") {
+			Write-Host -ForegroundColor Red "Config push failed! Please try again later."
+			Start-Sleep -s 3
+			sonarrMenu $userData
+		}
+	} elseif ($response.message -ne "success") {
+		Write-Host -ForegroundColor Red -BackgroundColor Black "Hmm, something weird happened. Please try again."
+		Start-Sleep -s 3
+		sonarrMenu $userData
+	}
+	sonarrMenu $userData
 }
 
 function main () {
 	Write-Host "Welcome to the MediaButler setup utility!"
-	$userData = checkUserData
-	checkPlexAuth $userData
-	chooseServer $userData
-	getMbURL $userData
+	checkUserData
+	$userDataTest
+	checkPlexAuth
+	chooseServer
+	getMbURL
 	do {
 		$ans = mainMenu
 		if (-Not(($ans -ge 1) -And ($ans -le 4))) {
@@ -496,11 +585,12 @@ function main () {
 		} elseif ($ans -eq 2) {
 			radarrMenu
 		} elseif ($ans -eq 3) {
-			setupTautulli $userData
+			setupTautulli
 		} elseif ($ans -eq 4) {
 			Exit
 		}
 	} while(-Not($valid))
 }
 
+$Global:userData = @{}
 main
