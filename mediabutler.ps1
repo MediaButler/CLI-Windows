@@ -1,6 +1,6 @@
 # Setup initial variables
 $uuid = "fb67fb8b-9000-4a70-a67b-2f2b626780bb"
-$userDataPath = "./userData.json"
+$userDataPath = '.\userData.json'
 $plexLoginURL = "https://plex.tv/users/sign_in.json"
 $mbLoginURL = "https://auth.mediabutler.io/login"
 $mbDiscoverURL = "https://auth.mediabutler.io/login/discover"
@@ -103,8 +103,8 @@ function testMB($url) {
 function checkUserData () {
 	$userData = @{}
 	if (Test-Path $userDataPath -PathType Leaf) {
-		$fileIn = Get-Content -Raw -Path userData.json | ConvertFrom-Json
-		$fileIn.psobject.properties | Foreach { $userData[$_.Name] = $_.Value }
+		$fileIn = Get-Content -Raw -Path $userDataPath | ConvertFrom-Json
+		$fileIn.psobject.properties | Foreach-Object { $userData[$_.Name] = $_.Value }
 	}
 	$userData
 }
@@ -396,6 +396,30 @@ function setupTautulli($userData) {
 	}
 }
 
+# Fucntion to get a list of Profiles from *arr and create a menu for the user to pick from
+# Returns selected profile name
+function arrProfiles($response) {
+	Write-Host ""
+	Write-Host "Please choose which profile you would like to set as the default for MediaButler:"
+	$menu = @{}
+	$i = 0
+	#$profile = ""
+	foreach ($profile in $response) { 
+		$i++
+		Write-Host "$i. $($profile.name)"
+		$menu.Add($i,($profile.name))
+	}
+	do {
+		[int]$ans = Read-Host 'Profile'
+		if (($ans -ge 1) -And ($ans -le $i)) {
+			$menu.Item($ans)
+		} else {
+			$valid = $false
+		}
+	} while(-Not ($valid))
+	#$profile
+}
+
 # Function to set up Sonarr
 function setupSonarr($ans, $userData) {
 	# Sonarr URL
@@ -445,6 +469,15 @@ function setupSonarr($ans, $userData) {
 			$valid = $true
 		}
 	} while (-Not($valid))
+
+	try {
+		$headers = @{
+			"X-Api-Key"=$sonarrAPI
+		};
+		$response = Invoke-WebRequest -Uri $sonarrURL"api/profile" -Headers $headers
+		$response = $response | ConvertFrom-Json
+		$sonarrProfile = arrProfiles $response
+	} catch {}
 }
 
 function main () {
