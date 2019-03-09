@@ -375,6 +375,7 @@ function sonarrMenu() {
 			$valid = $false
 		} elseif (($ans -eq 1) -Or ($ans -eq 2)) {
 			$valid = $true
+			$ans = [int]$ans
 			setupArr ($ans + 10)
 		} elseif ($ans -eq 3) {
 			$valid = $true
@@ -404,6 +405,7 @@ function radarrMenu() {
 			$valid = $false
 		} elseif (($ans -ge 1) -Or ($ans -le 3)) {
 			$valid = $true
+			$ans = [int]$ans
 			setupArr ($ans + 20)
 		} elseif ($ans -eq 4) {
 			$valid = $true
@@ -544,6 +546,7 @@ function arrProfiles($response) {
 		$ans = Read-Host 'Profile'
 		if (($ans -ge 1) -And ($ans -le $i)) {
 			$valid = $true
+			$ans = [int]$ans
 			$menu.Item($ans)
 		} else {
 			$valid = $false
@@ -566,6 +569,7 @@ function arrRootDir($response) {
 		$ans = Read-Host 'Profile'
 		if (($ans -ge 1) -And ($ans -le $i)) {
 			$valid = $true
+			$ans = [int]$ans
 			$menu.Item($ans)
 		} else {
 			$valid = $false
