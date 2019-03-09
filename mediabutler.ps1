@@ -121,7 +121,7 @@ function plexLogin() {
 
 			Write-Information "Now we're going to make sure you provided valid credentials..."
 
-			$response = Invoke-WebRequest -Uri $plexLoginURL -Method POST -Headers $headers -Body $body -ContentType "application/json"
+			$response = Invoke-WebRequest -Uri $plexLoginURL -Method POST -Headers $headers -Body $body -ContentType "application/json" -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 			$authToken = $response.user.authToken
 			Write-ColorOutput green "Success!"
@@ -149,7 +149,7 @@ function mbLogin($authToken) {
 			"authToken"=$authToken;
 		};
 		$body = $body | ConvertTo-Json
-		$response = Invoke-WebRequest -Uri $mbLoginURL -Method POST -Headers $headers -Body $body -ContentType "application/json"
+		$response = Invoke-WebRequest -Uri $mbLoginURL -Method POST -Headers $headers -Body $body -ContentType "application/json" -UseBasicParsing
 
 		# Convert to Array so it can be used
 		$response = $response | ConvertFrom-Json
@@ -204,7 +204,7 @@ function chooseServer() {
 function testMB($url) {
 	$isMB = $false
 	try {
-		$response = Invoke-WebRequest -Uri $url"version" -TimeoutSec 10
+		$response = Invoke-WebRequest -Uri $url"version" -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 		$apiVersion = $response.apiVersion.Split(".")
 		if (($apiVersion[0] -gt 1) -Or ($apiVersion[1] -gt 1) -Or ($apiVersion[2] -ge 12)) {
@@ -289,7 +289,7 @@ function setupChecks() {
 		};
 		$formattedURL = [System.String]::Concat(($userData.mbURL), 'configure/', ($endpoint))
 		try {
-			$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers
+			$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 		} catch {
 			Write-Debug $_.Exception.Response
@@ -442,7 +442,7 @@ function setupTautulli() {
 		}
 		Write-Information "Checking that the provided Tautulli URL is valid..."
 		try {
-			$response = Invoke-WebRequest -Uri $tauURL"auth/login" -Method Head
+			$response = Invoke-WebRequest -Uri $tauURL"auth/login" -Method Head -UseBasicParsing
 		} catch {
 			Write-Debug $_.Exception.Response
 		}
@@ -465,7 +465,7 @@ function setupTautulli() {
 		Write-Information ""
 		Write-Information "Testing that the provided Tautulli API Key is valid..."
 		try {
-			$response = Invoke-WebRequest -Uri $tauURL"api/v2?apikey="$tauAPI"&cmd=arnold"
+			$response = Invoke-WebRequest -Uri $tauURL"api/v2?apikey="$tauAPI"&cmd=arnold" -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 		} catch {
 			Write-Debug $_.Exception.Response
@@ -496,7 +496,7 @@ function setupTautulli() {
 	Write-Information ""
 	Write-Information "Testing the full Tautulli config for MediaButler..."
 	try {
-		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body
+		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 	} catch {
 		Write-Debug $_.Exception.Response
@@ -506,7 +506,7 @@ function setupTautulli() {
 		Write-Information ""
 		Write-Information "Saving the Tautulli config to MediaButler..."
 		try {
-			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body
+			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 		} catch {
 			Write-Debug $_.Exception.Response
@@ -630,7 +630,7 @@ function setupArr($ans) {
 		}
 		Write-Information "Checking that the provided $arr URL is valid..."
 		try {
-			$response = Invoke-WebRequest -Uri $url"auth/login" -Method Head
+			$response = Invoke-WebRequest -Uri $url"auth/login" -Method Head -UseBasicParsing
 		} catch {
 			Write-Debug $_.Exception.Response
 		}
@@ -657,7 +657,7 @@ function setupArr($ans) {
 			$headers = @{
 				"X-Api-Key"=$apiKey
 			};
-			$response = Invoke-WebRequest -Uri $sonarrURL"api/system/status" -Headers $headers
+			$response = Invoke-WebRequest -Uri $sonarrURL"api/system/status" -Headers $headers -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 		} catch {
 			$err = $_.Exception.Response.StatusCode
@@ -676,7 +676,7 @@ function setupArr($ans) {
 		$headers = @{
 			"X-Api-Key"=$apiKey
 		};
-		$response = Invoke-WebRequest -Uri $url"api/profile" -Headers $headers
+		$response = Invoke-WebRequest -Uri $url"api/profile" -Headers $headers -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 		$arrProfile = arrProfiles $response
 	} catch {
@@ -688,7 +688,7 @@ function setupArr($ans) {
 		$headers = @{
 			"X-Api-Key"=$apiKey
 		};
-		$response = Invoke-WebRequest -Uri $url"api/rootfolder" -Headers $headers
+		$response = Invoke-WebRequest -Uri $url"api/rootfolder" -Headers $headers -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 		$rootDir = arrRootDir $response
 	} catch {
@@ -714,7 +714,7 @@ function setupArr($ans) {
 	Write-Information ""
 	Write-Information "Testing the full $arr config for MediaButler..."
 	try {
-		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body
+		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 	} catch {
 		Write-Debug $_.Exception.Response
@@ -724,7 +724,7 @@ function setupArr($ans) {
 		Write-Information ""
 		Write-Information "Saving the $arr config to MediaButler..."
 		try {
-			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body
+			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 		} catch {
 			Write-Debug $_.Exception.Response
