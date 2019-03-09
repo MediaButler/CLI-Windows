@@ -54,7 +54,7 @@ function checkPlexAuth() {
 
 		$valid = $false
 		do {
-			[int]$ans = Read-Host 'Enter selection'
+			$ans = Read-Host 'Enter selection'
 			if ($ans -eq 1) {
 				$userData.authToken = plexLogin
 				$mbLoginResponse = mbLogin $userdata.authToken
@@ -184,7 +184,7 @@ function chooseServer() {
 			}
 		}
 		do {
-			[int]$ans = Read-Host 'Enter selection'
+			$ans = Read-Host 'Enter selection'
 			if ($ans -ge 1 -And $ans -le $i) {
 				$valid = $true
 				$userData.serverName = $menu.Item($ans).serverName
@@ -316,7 +316,7 @@ function mainMenu() {
 	Write-Information "4. Exit"
 	Write-Information ""
 	do {
-		[int]$ans = Read-Host 'Enter selection'
+		$ans = Read-Host 'Enter selection'
 		if (-Not(($ans -ge 1) -And ($ans -le 4))) {
 			Write-ColorOutput red "You did not specify a valid option!"
 			$valid = $false
@@ -369,7 +369,7 @@ function sonarrMenu() {
 	Write-Information "3. Back to Main Menu"
 	Write-Information ""
 	do {
-		[int]$ans = Read-Host 'Enter selection'
+		$ans = Read-Host 'Enter selection'
 		if (-Not(($ans -ge 1) -And ($ans -le 3))) {
 			Write-ColorOutput red "You did not specify a valid option!"
 			$valid = $false
@@ -398,7 +398,7 @@ function radarrMenu() {
 	Write-Information "4. Back to Main Menu"
 	Write-Information ""
 	do {
-		[int]$ans = Read-Host 'Enter selection'
+		$ans = Read-Host 'Enter selection'
 		if (-Not(($ans -ge 1) -And ($ans -le 4))) {
 			Write-ColorOutput red "You did not specify a valid option!"
 			$valid = $false
@@ -414,6 +414,23 @@ function radarrMenu() {
 
 # Function to get the Tautulli information, test it and send it to the MediaButler server
 function setupTautulli() {
+	if ($setupChecks.tautulli -eq $true) {
+		Write-ColorOutput red "Tautulli appears to be setup already!"
+		Write-ColorOutput yellow "Do you wish to continue?"
+		Write-Information "[Y]es or [N]o"
+		do {
+			$answ = Read-Host
+			if (($answ -notlike "y") -And ($answ -notlike "yes") -And ($answ -notlike "n") -And ($answ -notlike "no")) {
+				Write-ColorOutput red "Please specify yes, y, no, or n."
+				$cont = $true
+			} elseif (($answ -like "y") -Or ($answ -like "yes")) {
+				$cont = $false
+			} elseif (($answ -like "n") -Or ($answ -like "no")) {
+				$cont = $false
+				mainMenu
+			}
+		} while ($cont)
+	}
 	# Tautulli URL
 	Write-Information ""
 	Write-Information "Please enter your Tautulli URL (IE: http://127.0.0.1:8181/tautulli/):"
@@ -524,7 +541,7 @@ function arrProfiles($response) {
 		$menu.Add($i,($profile.name))
 	}
 	do {
-		[int]$ans = Read-Host 'Profile'
+		$ans = Read-Host 'Profile'
 		if (($ans -ge 1) -And ($ans -le $i)) {
 			$valid = $true
 			$menu.Item($ans)
@@ -546,7 +563,7 @@ function arrRootDir($response) {
 		$menu.Add($i,($rootDir.path))
 	}
 	do {
-		[int]$ans = Read-Host 'Profile'
+		$ans = Read-Host 'Profile'
 		if (($ans -ge 1) -And ($ans -le $i)) {
 			$valid = $true
 			$menu.Item($ans)
@@ -580,7 +597,8 @@ function setupArr($ans) {
 		$arr = "Radarr"
 		$exURL = "http://127.0.0.1:7878/radarr/"
 	}
-	if ($setupChecks.($endpoint) = $true) {
+	$setupChecks.($endpoint) = $false
+	if ($setupChecks.($endpoint) -eq $true) {
 		Write-ColorOutput red "$arr appears to be setup already!"
 		Write-ColorOutput yellow "Do you wish to continue?"
 		Write-Information "[Y]es or [N]o"
@@ -591,139 +609,144 @@ function setupArr($ans) {
 				$cont = $true
 			} elseif (($answ -like "y") -Or ($answ -like "yes")) {
 				$cont = $false
-				# Sonarr URL
-				Write-Information ""
-				Write-Information "Please enter your $arr URL (IE: $exURL):"
-				do {
-					$url = Read-Host -Prompt "URL"
-					$lastChar = $url.SubString($url.Length - 1)
-					if ($lastChar -ne "/") {
-						$url = "$url/"
-					}
-					Write-Information "Checking that the provided $arr URL is valid..."
-					try {
-						$response = Invoke-WebRequest -Uri $url"auth/login" -Method Head
-					} catch {
-						Write-Debug $_.Exception.Response
-					}
-					if ($response.statuscode -eq "200") {
-						Write-ColorOutput green "Success!"
-						$valid = $true
-					} else {
-						Write-ColorOutput red "Received something other than a 200 OK response!"
-						$valid = $false
-					}
-				} while (-Not($valid))
-
-				# API Key
-				Write-Information ""
-				Write-Information "Please enter your $arr API key"
-				do {
-					$err = ""
-					$apiKey = Read-Host -Prompt 'API' -AsSecureString
-					$credentials = New-Object System.Management.Automation.PSCredential -ArgumentList "apiKey", $apiKey
-					$apiKey = $credentials.GetNetworkCredential().Password
-					Write-Information ""
-					Write-Information "Testing that the provided $arr API Key is valid..."
-					try {
-						$headers = @{
-							"X-Api-Key"=$apiKey
-						};
-						$response = Invoke-WebRequest -Uri $sonarrURL"api/system/status" -Headers $headers
-						$response = $response | ConvertFrom-Json
-					} catch {
-						$err = $_.Exception.Response.StatusCode
-					}
-					if ($err -eq "Unauthorized") {
-						Write-ColorOutput red "Received something other than an OK response!"
-						$valid = $false
-					} else {
-						Write-ColorOutput green "Success!"
-						$valid = $true
-					}
-				} while (-Not($valid))
-
-				# Default Profile
-				try {
-					$headers = @{
-						"X-Api-Key"=$apiKey
-					};
-					$response = Invoke-WebRequest -Uri $url"api/profile" -Headers $headers
-					$response = $response | ConvertFrom-Json
-					$arrProfile = arrProfiles $response
-				} catch {
-					Write-Debug $_.Exception.Response
-				}
-
-				# Default Root Directory
-				try {
-					$headers = @{
-						"X-Api-Key"=$apiKey
-					};
-					$response = Invoke-WebRequest -Uri $url"api/rootfolder" -Headers $headers
-					$response = $response | ConvertFrom-Json
-					$rootDir = arrRootDir $response
-				} catch {
-					Write-Debug $_.Exception.Response
-				}
-
-				# Set MediaButler formatting
-				$headers = @{
-					"Content-Type"="application/json"
-					"MB-Client-Identifier"=$uuid;
-					"Authorization"="Bearer " + $userData.mbToken;
-				};
-				$body = @{
-					"url"=$url;
-					"apikey"=$apiKey;
-					"defaultProfile"=$arrProfile
-					"defaultRoot"=$rootDir
-				};
-				$body = $body | ConvertTo-Json
-				$formattedURL = [System.String]::Concat(($userData.mbURL), 'configure/', ($endpoint))
-
-				# Test and Save to MediaButler
-				Write-Information ""
-				Write-Information "Testing the full $arr config for MediaButler..."
-				try {
-					$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body
-					$response = $response | ConvertFrom-Json
-				} catch {
-					Write-Debug $_.Exception.Response
-				}
-				if ($response.message -eq "success") {
-					Write-ColorOutput green "Success!"
-					Write-Information ""
-					Write-Information "Saving the $arr config to MediaButler..."
-					try {
-						$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body
-						$response = $response | ConvertFrom-Json
-					} catch {
-						Write-Debug $_.Exception.Response
-					}
-					if ($response.message -eq "success") {
-						Write-ColorOutput green "Done! $arr has been successfully configured for"
-						Write-ColorOutput green "MediaButler with the $($userData.serverName) Plex server."
-						Start-Sleep -s 3
-						Write-Information "Returning you to the Main Menu..."
-						mainMenu
-					}  elseif ($response.message -ne "success") {
-						Write-ColorOutput red "Config push failed! Please try again later."
-						Start-Sleep -s 3
-					}
-				} elseif ($response.message -ne "success") {
-					Write-ColorOutput red "Hmm, something weird happened. Please try again."
-					Start-Sleep -s 3
-				}
 			} elseif (($answ -like "n") -Or ($answ -like "no")) {
 				$cont = $false
+				if (($ans -gt 10) -And ($ans -lt 20)) {
+					sonarrMenu
+				} elseif (($ans -gt 20) -And ($ans -lt 30)) {
+					radarrMenu
+				}
 			}
 		} while ($cont)
-		if (($ans -gt 10) -And ($ans -lt 20)) {
-			sonarrMenu
-		} elseif (($ans -gt 20) -And ($ans -lt 30)) {
-			radarrMenu
+	}
+	# Sonarr URL
+	Write-Information ""
+	Write-Information "Please enter your $arr URL (IE: $exURL):"
+	do {
+		$url = Read-Host -Prompt "URL"
+		$lastChar = $url.SubString($url.Length - 1)
+		if ($lastChar -ne "/") {
+			$url = "$url/"
 		}
+		Write-Information "Checking that the provided $arr URL is valid..."
+		try {
+			$response = Invoke-WebRequest -Uri $url"auth/login" -Method Head
+		} catch {
+			Write-Debug $_.Exception.Response
+		}
+		if ($response.statuscode -eq "200") {
+			Write-ColorOutput green "Success!"
+			$valid = $true
+		} else {
+			Write-ColorOutput red "Received something other than a 200 OK response!"
+			$valid = $false
+		}
+	} while (-Not($valid))
+
+	# API Key
+	Write-Information ""
+	Write-Information "Please enter your $arr API key"
+	do {
+		$err = ""
+		$apiKey = Read-Host -Prompt 'API' -AsSecureString
+		$credentials = New-Object System.Management.Automation.PSCredential -ArgumentList "apiKey", $apiKey
+		$apiKey = $credentials.GetNetworkCredential().Password
+		Write-Information ""
+		Write-Information "Testing that the provided $arr API Key is valid..."
+		try {
+			$headers = @{
+				"X-Api-Key"=$apiKey
+			};
+			$response = Invoke-WebRequest -Uri $sonarrURL"api/system/status" -Headers $headers
+			$response = $response | ConvertFrom-Json
+		} catch {
+			$err = $_.Exception.Response.StatusCode
+		}
+		if ($err -eq "Unauthorized") {
+			Write-ColorOutput red "Received something other than an OK response!"
+			$valid = $false
+		} else {
+			Write-ColorOutput green "Success!"
+			$valid = $true
+		}
+	} while (-Not($valid))
+
+	# Default Profile
+	try {
+		$headers = @{
+			"X-Api-Key"=$apiKey
+		};
+		$response = Invoke-WebRequest -Uri $url"api/profile" -Headers $headers
+		$response = $response | ConvertFrom-Json
+		$arrProfile = arrProfiles $response
+	} catch {
+		Write-Debug $_.Exception.Response
+	}
+
+	# Default Root Directory
+	try {
+		$headers = @{
+			"X-Api-Key"=$apiKey
+		};
+		$response = Invoke-WebRequest -Uri $url"api/rootfolder" -Headers $headers
+		$response = $response | ConvertFrom-Json
+		$rootDir = arrRootDir $response
+	} catch {
+		Write-Debug $_.Exception.Response
+	}
+
+	# Set MediaButler formatting
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	$body = @{
+		"url"=$url;
+		"apikey"=$apiKey;
+		"defaultProfile"=$arrProfile
+		"defaultRoot"=$rootDir
+	};
+	$body = $body | ConvertTo-Json
+	$formattedURL = [System.String]::Concat(($userData.mbURL), 'configure/', ($endpoint))
+
+	# Test and Save to MediaButler
+	Write-Information ""
+	Write-Information "Testing the full $arr config for MediaButler..."
+	try {
+		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body
+		$response = $response | ConvertFrom-Json
+	} catch {
+		Write-Debug $_.Exception.Response
+	}
+	if ($response.message -eq "success") {
+		Write-ColorOutput green "Success!"
+		Write-Information ""
+		Write-Information "Saving the $arr config to MediaButler..."
+		try {
+			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body
+			$response = $response | ConvertFrom-Json
+		} catch {
+			Write-Debug $_.Exception.Response
+		}
+		if ($response.message -eq "success") {
+			Write-ColorOutput green "Done! $arr has been successfully configured for"
+			Write-ColorOutput green "MediaButler with the $($userData.serverName) Plex server."
+			Start-Sleep -s 3
+			Write-Information "Returning you to the Main Menu..."
+			mainMenu
+		}  elseif ($response.message -ne "success") {
+			Write-ColorOutput red "Config push failed! Please try again later."
+			Start-Sleep -s 3
+		}
+	} elseif ($response.message -ne "success") {
+		Write-ColorOutput red "Hmm, something weird happened. Please try again."
+		Start-Sleep -s 3
+	}
+	if (($ans -gt 10) -And ($ans -lt 20)) {
+		sonarrMenu
+	} elseif (($ans -gt 20) -And ($ans -lt 30)) {
+		radarrMenu
 	}
 }
 
