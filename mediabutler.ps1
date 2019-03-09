@@ -733,7 +733,6 @@ function main () {
 	chooseServer
 	getMbURL
 	setupChecks
-	$setupChecks
 	mainMenu
 }
 
