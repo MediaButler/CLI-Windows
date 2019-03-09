@@ -346,8 +346,9 @@ function exitMenu() {
 		if (($ans -notlike "y") -And ($ans -notlike "yes") -And ($ans -notlike "n") -And ($ans -notlike "no")) {
 			Write-ColorOutput red "Please specify yes, y, no, or n."
 			$valid = $false
-		} elseif (($ans -like "y") -Or ($ans -like "yes")) {
+		} elseif (($ans -like "n") -Or ($ans -like "no")) {
 			$valid = $true
+			mainMenu
 		} else {
 			Exit
 		}
