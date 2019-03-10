@@ -374,8 +374,18 @@ function sonarrMenu() {
 	Write-Information "Please choose which version of Sonarr you"
 	Write-Information "would like to configure for MediaButler: "
 	Write-Information ""
-	Write-Information "1. Sonarr"
-	Write-Information "2. Sonarr 4K"
+	Write-ColorOutput -nonewline -MessageData "1. "
+	if ($setupChecks.sonarr) {
+		Write-ColorOutput -ForegroundColor green -MessageData "Sonarr"
+	} else {
+		Write-ColorOutput -ForegroundColor red -MessageData "Sonarr"
+	}
+	Write-ColorOutput -nonewline -MessageData "2. "
+	if ($setupChecks.sonarr4k) {
+		Write-ColorOutput -ForegroundColor green -MessageData "Sonarr 4K"
+	} else {
+		Write-ColorOutput -ForegroundColor red -MessageData "Sonarr 4K"
+	}
 	Write-Information "3. Back to Main Menu"
 	Write-Information ""
 	do {
@@ -403,9 +413,24 @@ function radarrMenu() {
 	Write-Information "Please choose which version of Radarr you"
 	Write-Information "would like to configure for MediaButler: "
 	Write-Information ""
-	Write-Information "1. Radarr"
-	Write-Information "2. Radarr 4K"
-	Write-Information "3. Radarr 3D"
+	Write-ColorOutput -nonewline -MessageData "1. "
+	if ($setupChecks.radarr) {
+		Write-ColorOutput -ForegroundColor green -MessageData "Radarr"
+	} else {
+		Write-ColorOutput -ForegroundColor red -MessageData "Radarr"
+	}
+	Write-ColorOutput -nonewline -MessageData "2. "
+	if ($setupChecks.radarr4k) {
+		Write-ColorOutput -ForegroundColor green -MessageData "Radarr 4K"
+	} else {
+		Write-ColorOutput -ForegroundColor red -MessageData "Radarr 4K"
+	}
+	Write-ColorOutput -nonewline -MessageData "3. "
+	if ($setupChecks.radarr3d) {
+		Write-ColorOutput -ForegroundColor green -MessageData "Radarr 3D"
+	} else {
+		Write-ColorOutput -ForegroundColor red -MessageData "Radarr 3D"
+	}
 	Write-Information "4. Back to Main Menu"
 	Write-Information ""
 	do {
