@@ -438,7 +438,7 @@ function sonarrMenu() {
 		if (-Not(($ans -ge 1) -And ($ans -le 3))) {
 			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 			$valid = $false
-		} elseif (($ans -eq 1) -And ($ans -eq 2)) {
+		} elseif (($ans -ge 1) -And ($ans -le 3)) {
 			$valid = $true
 			$ans = [int]$ans
 			setupArr ($ans + 10)
@@ -598,6 +598,7 @@ function setupTautulli() {
 			Write-ColorOutput -ForegroundColor green -MessageData "Done! Tautulli has been successfully configured for"
 			$str = "MediaButler with the " + $userData.serverName + " Plex server."
 			Write-ColorOutput -ForegroundColor green $str
+			$setupChecks.tautulli = $true
 			Start-Sleep -s 3
 			Write-Information "Returning you to the Main Menu..."
 		}  elseif ($response.message -ne "success") {
@@ -682,8 +683,7 @@ function setupArr($ans) {
 		$arr = "Radarr"
 		$exURL = "http://127.0.0.1:7878/radarr/"
 	}
-	$setupChecks.($endpoint) = $false
-	if ($setupChecks.($endpoint) -eq $true) {
+	if ($setupChecks.Item($endpoint) -eq $true) {
 		Write-ColorOutput -ForegroundColor red -MessageData "$arr appears to be setup already!"
 		Write-ColorOutput -ForegroundColor yellow -MessageData "Do you wish to continue?"
 		Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -MessageData "o";
@@ -818,6 +818,7 @@ function setupArr($ans) {
 		if ($response.message -eq "success") {
 			Write-ColorOutput -ForegroundColor green -MessageData "Done! $arr has been successfully configured for"
 			Write-ColorOutput -ForegroundColor green -MessageData "MediaButler with the $($userData.serverName) Plex server."
+			$setupChecks.($endpoint)= $true
 			Start-Sleep -s 3
 			Write-Information "Returning you to the Main Menu..."
 			mainMenu
