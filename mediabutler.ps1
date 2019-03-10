@@ -342,11 +342,12 @@ function mainMenu() {
 	} else {
 		Write-ColorOutput -ForegroundColor red -MessageData "Tautulli"
 	}
-	Write-Information "4. Exit"
+	Write-Information "4. Reset"
+	Write-Information "5. Exit"
 	Write-Information ""
 	do {
 		$ans = Read-Host 'Enter selection'
-		if (-Not(($ans -ge 1) -And ($ans -le 4))) {
+		if (-Not(($ans -ge 1) -And ($ans -le 5))) {
 			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 			$valid = $false
 		} elseif ($ans -eq 1) {
@@ -359,6 +360,9 @@ function mainMenu() {
 			$valid = $true
 			setupTautulli
 		} elseif ($ans -eq 4) {
+			$valid = $true
+			resetAll
+		}elseif ($ans -eq 5) {
 			$valid = $true
 			exitMenu
 		}
@@ -382,6 +386,28 @@ function exitMenu() {
 			Exit
 		}
 	} while (-Not ($valid))
+}
+
+# Delete userData.json
+function resetAll() {
+	Write-ColorOutput -ForegroundColor red -MessageData "**WARNING!!!** This will reset ALL setup progress!"
+	Write-ColorOutput -ForegroundColor yellow -MessageData "Do you wish to continue?"
+	Write-Information ""
+	Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -MessageData "o";
+	do {
+		$answ = Read-Host
+		if (($answ -notlike "y") -And ($answ -notlike "yes") -And ($answ -notlike "n") -And ($answ -notlike "no")) {
+			Write-ColorOutput -ForegroundColor red -MessageData "Please specify yes, y, no, or n."
+			$cont = $true
+		} elseif (($answ -like "y") -Or ($answ -like "yes")) {
+			$cont = $false
+			Remove-Item $userDataPath
+			Exit
+		} elseif (($answ -like "n") -Or ($answ -like "no")) {
+			$cont = $false
+			mainMenu
+		}
+	} while ($cont)
 }
 
 # Print the Sonarr menu and get response
