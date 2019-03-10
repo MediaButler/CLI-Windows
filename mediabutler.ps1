@@ -398,7 +398,7 @@ function sonarrMenu() {
 		if (-Not(($ans -ge 1) -And ($ans -le 3))) {
 			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 			$valid = $false
-		} elseif (($ans -eq 1) -Or ($ans -eq 2)) {
+		} elseif (($ans -eq 1) -And ($ans -eq 2)) {
 			$valid = $true
 			$ans = [int]$ans
 			setupArr ($ans + 10)
@@ -443,7 +443,7 @@ function radarrMenu() {
 		if (-Not(($ans -ge 1) -And ($ans -le 4))) {
 			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 			$valid = $false
-		} elseif (($ans -ge 1) -Or ($ans -le 3)) {
+		} elseif (($ans -ge 1) -And ($ans -le 3)) {
 			$valid = $true
 			$ans = [int]$ans
 			setupArr ($ans + 20)
