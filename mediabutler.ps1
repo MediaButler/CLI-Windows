@@ -322,7 +322,12 @@ function mainMenu() {
 	Write-Information ""
 	Write-Information "1. Sonarr"
 	Write-Information "2. Radarr"
-	Write-Information "3. Tautulli"
+	Write-ColorOutput -nonewline -MessageData "3. "
+	if ($setupChecks.tautulli) {
+		Write-ColorOutput -ForegroundColor green -MessageData "Tautulli"
+	} else {
+		Write-ColorOutput -ForegroundColor red -MessageData "Tautulli"
+	}
 	Write-Information "4. Exit"
 	Write-Information ""
 	do {
