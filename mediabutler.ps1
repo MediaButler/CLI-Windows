@@ -185,6 +185,7 @@ function chooseServer() {
 		}
 		do {
 			$ans = Read-Host 'Enter selection'
+			$ans = [int]$ans
 			if ($ans -ge 1 -And $ans -le $i) {
 				$valid = $true
 				$userData.serverName = $menu.Item($ans).serverName
@@ -234,7 +235,7 @@ function getMbURL() {
 					"machineId"=$userData.machineId;
 				};
 				$body = $body | ConvertTo-Json
-				$mbURL = Invoke-WebRequest -Uri $mbDiscoverURL -Method POST -Headers $headers -Body $body -ContentType "application/json"
+				$mbURL = Invoke-WebRequest -Uri $mbDiscoverURL -Method POST -Headers $headers -Body $body -ContentType "application/json"  -UseBasicParsing
 			}
 			Write-Information "Is this the correct MediaButler URL?"
 			Write-ColorOutput yellow $mbURL
@@ -445,10 +446,11 @@ function setupTautulli() {
 		Write-Information "Checking that the provided Tautulli URL is valid..."
 		try {
 			$response = Invoke-WebRequest -Uri $tauURL"auth/login" -Method Head -UseBasicParsing
+			[String]$title = $response -split "`n" | Select-String -Pattern '<title>'
 		} catch {
 			Write-Debug $_.Exception.Response
 		}
-		if ($response.statuscode -eq "200") {
+		if ($title -like "*Tautulli*") {
 			Write-ColorOutput green "Success!"
 			$valid = $true
 		} else {
@@ -634,11 +636,12 @@ function setupArr($ans) {
 		}
 		Write-Information "Checking that the provided $arr URL is valid..."
 		try {
-			$response = Invoke-WebRequest -Uri $url"auth/login" -Method Head -UseBasicParsing
+			$response = Invoke-WebRequest -Uri $url -UseBasicParsing
+			[String]$title = $response -split "`n" | Select-String -Pattern '<title>'
 		} catch {
 			Write-Debug $_.Exception.Response
 		}
-		if ($response.statuscode -eq "200") {
+		if ($title -like "*$arr*") {
 			Write-ColorOutput green "Success!"
 			$valid = $true
 		} else {
