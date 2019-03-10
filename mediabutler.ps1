@@ -320,8 +320,22 @@ function mainMenu() {
 	Write-Information "Please choose which application you would"
 	Write-Information "   like to configure for MediaButler:    "
 	Write-Information ""
-	Write-Information "1. Sonarr"
-	Write-Information "2. Radarr"
+	Write-ColorOutput -nonewline -MessageData "1. "
+	if ($setupChecks.sonarr -And $setupChecks.sonarr4k) {
+		Write-ColorOutput -ForegroundColor green -MessageData "Sonarr"
+	} elseif ($setupChecks.sonarr -Or $setupChecks.sonarr4k) {
+		Write-ColorOutput -ForegroundColor yellow -MessageData "Sonarr"
+	} else {
+		Write-ColorOutput -ForegroundColor red -MessageData "Sonarr"
+	}
+	Write-ColorOutput -nonewline -MessageData "2. "
+	if ($setupChecks.radarr -And $setupChecks.radarr4k -And $setupChecks.radarr3d) {
+		Write-ColorOutput -ForegroundColor green -MessageData "Radarr"
+	} elseif ($setupChecks.radarr -Or $setupChecks.radarr4k -Or $setupChecks.radarr3d) {
+		Write-ColorOutput -ForegroundColor yellow -MessageData "Radarr"
+	} else {
+		Write-ColorOutput -ForegroundColor red -MessageData "Radarr"
+	}
 	Write-ColorOutput -nonewline -MessageData "3. "
 	if ($setupChecks.tautulli) {
 		Write-ColorOutput -ForegroundColor green -MessageData "Tautulli"
