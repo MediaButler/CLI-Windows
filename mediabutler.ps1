@@ -1,5 +1,7 @@
+#Requires -Version 5.0
 # Script to setup/configure MediaButler
 # HalianElf
+using namespace System.Management.Automation
 
 # Define variables
 $InformationPreference = 'Continue'
@@ -19,18 +21,25 @@ $setupChecks = @{
 }
 
 # Function to change the color output of text
-function Write-ColorOutput($ForegroundColor, $message) {
-	# Save the current color
-	$fc = $host.UI.RawUI.ForegroundColor
+# https://blog.kieranties.com/2018/03/26/write-information-with-colours
+function Write-ColorOutput() {
+	[CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [Object]$MessageData,
+        [ConsoleColor]$ForegroundColor = $Host.UI.RawUI.ForegroundColor, # Make sure we use the current colours by default
+        [ConsoleColor]$BackgroundColor = $Host.UI.RawUI.BackgroundColor,
+        [Switch]$NoNewline
+    )
 
-	# Set the new color
-	$host.UI.RawUI.ForegroundColor = $ForegroundColor
+    $msg = [HostInformationMessage]@{
+        Message         = $MessageData
+        ForegroundColor = $ForegroundColor
+        BackgroundColor = $BackgroundColor
+        NoNewline       = $NoNewline.IsPresent
+    }
 
-	# Write out the message
-	Write-Information $message
-
-	# Restore the original color
-	$host.UI.RawUI.ForegroundColor = $fc
+    Write-Information $msg
 }
 
 # Check if userData.json exists
@@ -68,12 +77,12 @@ function checkPlexAuth() {
 					$userdata.authToken = $credentials.GetNetworkCredential().Password
 					$mbLoginResponse = mbLogin $userdata.authToken
 					if([string]::IsNullOrEmpty($mbLoginResponse)) {
-						Write-ColorOutput red "The credentials that you provided are not valid!"
+						Write-ColorOutput -ForegroundColor red -MessageData "The credentials that you provided are not valid!"
 					}
 				} while ([string]::IsNullOrEmpty($mbLoginResponse))
 				$valid = $true
 			} else {
-				Write-ColorOutput red "Invalid Response. Please try again."
+				Write-ColorOutput -ForegroundColor red -MessageData "Invalid Response. Please try again."
 			}
 		} while (-Not ($valid))
 		$userData | ConvertTo-Json | Out-File -FilePath $userDataPath
@@ -124,12 +133,12 @@ function plexLogin() {
 			$response = Invoke-WebRequest -Uri $plexLoginURL -Method POST -Headers $headers -Body $body -ContentType "application/json" -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 			$authToken = $response.user.authToken
-			Write-ColorOutput green "Success!"
+			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
 		} catch [System.Net.WebException] {
 			$err = $_.Exception.Response.StatusCode
 			$failedLogin = $true
 			if ($err -eq "Unauthorized") {
-				Write-ColorOutput red "The credentials that you provided are not valid!"
+				Write-ColorOutput -ForegroundColor red -MessageData "The credentials that you provided are not valid!"
 			}
 		}
 	} while ($failedLogin)
@@ -193,7 +202,7 @@ function chooseServer() {
 				$userData.mbToken = $menu.Item($ans).mbToken
 			} else {
 				$valid = $false
-				Write-ColorOutput red "You did not specify a valid option!"
+				Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 			}
 		} while (-Not ($valid))
 		$userData | ConvertTo-Json | Out-File -FilePath $userDataPath
@@ -238,14 +247,14 @@ function getMbURL() {
 				$mbURL = Invoke-WebRequest -Uri $mbDiscoverURL -Method POST -Headers $headers -Body $body -ContentType "application/json"  -UseBasicParsing
 			}
 			Write-Information "Is this the correct MediaButler URL?"
-			Write-ColorOutput yellow $mbURL
+			Write-ColorOutput -ForegroundColor yellow -MessageData $mbURL
 			Write-Information ""
-			Write-Information "[Y]es or [N]o"
+			Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -MessageData "o";
 			$valid = $false
 			do {
 				$ans = Read-Host
 				if (($ans -notlike "y") -And ($ans -notlike "yes") -And ($ans -notlike "n") -And ($ans -notlike "no")) {
-					Write-ColorOutput red "Please specify yes, y, no, or n."
+					Write-ColorOutput -ForegroundColor red -MessageData "Please specify yes, y, no, or n."
 					$valid = $false
 				} elseif (($ans -like "y") -Or ($ans -like "yes")) {
 					$valid = $true
@@ -263,7 +272,7 @@ function getMbURL() {
 				}
 				$isMB = testMB $mbURL;
 				if(-Not ($isMB)) {
-					Write-ColorOutput red "Invalid Server URL"
+					Write-ColorOutput -ForegroundColor red -MessageData "Invalid Server URL"
 				}
 			} while(-Not ($isMB));
 			$userData.mbURL = $mbURL
@@ -319,7 +328,7 @@ function mainMenu() {
 	do {
 		$ans = Read-Host 'Enter selection'
 		if (-Not(($ans -ge 1) -And ($ans -le 4))) {
-			Write-ColorOutput red "You did not specify a valid option!"
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 			$valid = $false
 		} elseif ($ans -eq 1) {
 			$valid = $true
@@ -341,11 +350,11 @@ function exitMenu() {
 	Write-Information ""
 	Write-Information "This will exit the program and any unfinished config setup will be lost."
 	Write-Information "Are you sure you wish to exit?"
-	Write-Information "[Y]es or [N]o"
+	Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -MessageData "o";
 	do {
 		$ans = Read-Host
 		if (($ans -notlike "y") -And ($ans -notlike "yes") -And ($ans -notlike "n") -And ($ans -notlike "no")) {
-			Write-ColorOutput red "Please specify yes, y, no, or n."
+			Write-ColorOutput -ForegroundColor red -MessageData "Please specify yes, y, no, or n."
 			$valid = $false
 		} elseif (($ans -like "n") -Or ($ans -like "no")) {
 			$valid = $true
@@ -372,7 +381,7 @@ function sonarrMenu() {
 	do {
 		$ans = Read-Host 'Enter selection'
 		if (-Not(($ans -ge 1) -And ($ans -le 3))) {
-			Write-ColorOutput red "You did not specify a valid option!"
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 			$valid = $false
 		} elseif (($ans -eq 1) -Or ($ans -eq 2)) {
 			$valid = $true
@@ -402,7 +411,7 @@ function radarrMenu() {
 	do {
 		$ans = Read-Host 'Enter selection'
 		if (-Not(($ans -ge 1) -And ($ans -le 4))) {
-			Write-ColorOutput red "You did not specify a valid option!"
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 			$valid = $false
 		} elseif (($ans -ge 1) -Or ($ans -le 3)) {
 			$valid = $true
@@ -418,13 +427,13 @@ function radarrMenu() {
 # Function to get the Tautulli information, test it and send it to the MediaButler server
 function setupTautulli() {
 	if ($setupChecks.tautulli -eq $true) {
-		Write-ColorOutput red "Tautulli appears to be setup already!"
-		Write-ColorOutput yellow "Do you wish to continue?"
-		Write-Information "[Y]es or [N]o"
+		Write-ColorOutput -ForegroundColor red -MessageData "Tautulli appears to be setup already!"
+		Write-ColorOutput -ForegroundColor yellow -MessageData "Do you wish to continue?"
+		Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -MessageData "o";
 		do {
 			$answ = Read-Host
 			if (($answ -notlike "y") -And ($answ -notlike "yes") -And ($answ -notlike "n") -And ($answ -notlike "no")) {
-				Write-ColorOutput red "Please specify yes, y, no, or n."
+				Write-ColorOutput -ForegroundColor red -MessageData "Please specify yes, y, no, or n."
 				$cont = $true
 			} elseif (($answ -like "y") -Or ($answ -like "yes")) {
 				$cont = $false
@@ -451,10 +460,10 @@ function setupTautulli() {
 			Write-Debug $_.Exception.Response
 		}
 		if ($title -like "*Tautulli*") {
-			Write-ColorOutput green "Success!"
+			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
 			$valid = $true
 		} else {
-			Write-ColorOutput red "Received something other than a 200 OK response!"
+			Write-ColorOutput -ForegroundColor red -MessageData "Received something other than a 200 OK response!"
 			$valid = $false
 		}
 	} while (-Not($valid))
@@ -475,10 +484,10 @@ function setupTautulli() {
 			Write-Debug $_.Exception.Response
 		}
 		if ($null -eq $response.response.message) {
-			Write-ColorOutput green "Success!"
+			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
 			$valid = $true
 		} else {
-			Write-ColorOutput red "Received something other than an OK response!"
+			Write-ColorOutput -ForegroundColor red -MessageData "Received something other than an OK response!"
 			$valid = $false
 		}
 	} while (-Not($valid))
@@ -506,7 +515,7 @@ function setupTautulli() {
 		Write-Debug $_.Exception.Response
 	}
 	if ($response.message -eq "success") {
-		Write-ColorOutput green "Success!"
+		Write-ColorOutput -ForegroundColor green -MessageData "Success!"
 		Write-Information ""
 		Write-Information "Saving the Tautulli config to MediaButler..."
 		try {
@@ -516,17 +525,17 @@ function setupTautulli() {
 			Write-Debug $_.Exception.Response
 		}
 		if ($response.message -eq "success") {
-			Write-ColorOutput green "Done! Tautulli has been successfully configured for"
+			Write-ColorOutput -ForegroundColor green -MessageData "Done! Tautulli has been successfully configured for"
 			$str = "MediaButler with the " + $userData.serverName + " Plex server."
-			Write-ColorOutput green $str
+			Write-ColorOutput -ForegroundColor green $str
 			Start-Sleep -s 3
 			Write-Information "Returning you to the Main Menu..."
 		}  elseif ($response.message -ne "success") {
-			Write-ColorOutput red "Config push failed! Please try again later."
+			Write-ColorOutput -ForegroundColor red -MessageData "Config push failed! Please try again later."
 			Start-Sleep -s 3
 		}
 	} elseif ($response.message -ne "success") {
-		Write-ColorOutput red "Hmm, something weird happened. Please try again."
+		Write-ColorOutput -ForegroundColor red -MessageData "Hmm, something weird happened. Please try again."
 		Start-Sleep -s 3
 	}
 	mainMenu
@@ -552,7 +561,7 @@ function arrProfiles($response) {
 			$menu.Item($ans)
 		} else {
 			$valid = $false
-			Write-ColorOutput red "Invalid Response."
+			Write-ColorOutput -ForegroundColor red -MessageData "Invalid Response."
 		}
 	} while (-Not ($valid))
 }
@@ -575,7 +584,7 @@ function arrRootDir($response) {
 			$menu.Item($ans)
 		} else {
 			$valid = $false
-			Write-ColorOutput red "Invalid Response."
+			Write-ColorOutput -ForegroundColor red -MessageData "Invalid Response."
 		}
 	} while (-Not ($valid))
 }
@@ -605,13 +614,13 @@ function setupArr($ans) {
 	}
 	$setupChecks.($endpoint) = $false
 	if ($setupChecks.($endpoint) -eq $true) {
-		Write-ColorOutput red "$arr appears to be setup already!"
-		Write-ColorOutput yellow "Do you wish to continue?"
-		Write-Information "[Y]es or [N]o"
+		Write-ColorOutput -ForegroundColor red -MessageData "$arr appears to be setup already!"
+		Write-ColorOutput -ForegroundColor yellow -MessageData "Do you wish to continue?"
+		Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -MessageData "o";
 		do {
 			$answ = Read-Host
 			if (($answ -notlike "y") -And ($answ -notlike "yes") -And ($answ -notlike "n") -And ($answ -notlike "no")) {
-				Write-ColorOutput red "Please specify yes, y, no, or n."
+				Write-ColorOutput -ForegroundColor red -MessageData "Please specify yes, y, no, or n."
 				$cont = $true
 			} elseif (($answ -like "y") -Or ($answ -like "yes")) {
 				$cont = $false
@@ -639,13 +648,13 @@ function setupArr($ans) {
 			$response = Invoke-WebRequest -Uri $url -UseBasicParsing
 			[String]$title = $response -split "`n" | Select-String -Pattern '<title>'
 		} catch {
-			Write-Debug $_.Exception.Response
+			Write-Debug $_.Exception
 		}
 		if ($title -like "*$arr*") {
-			Write-ColorOutput green "Success!"
+			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
 			$valid = $true
 		} else {
-			Write-ColorOutput red "Received something other than a 200 OK response!"
+			Write-ColorOutput -ForegroundColor red -MessageData "Received something other than a 200 OK response!"
 			$valid = $false
 		}
 	} while (-Not($valid))
@@ -670,10 +679,10 @@ function setupArr($ans) {
 			$err = $_.Exception.Response.StatusCode
 		}
 		if ($err -eq "Unauthorized") {
-			Write-ColorOutput red "Received something other than an OK response!"
+			Write-ColorOutput -ForegroundColor red -MessageData "Received something other than an OK response!"
 			$valid = $false
 		} else {
-			Write-ColorOutput green "Success!"
+			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
 			$valid = $true
 		}
 	} while (-Not($valid))
@@ -687,7 +696,7 @@ function setupArr($ans) {
 		$response = $response | ConvertFrom-Json
 		$arrProfile = arrProfiles $response
 	} catch {
-		Write-Debug $_.Exception.Response
+		Write-Debug $_.Exception
 	}
 
 	# Default Root Directory
@@ -699,7 +708,7 @@ function setupArr($ans) {
 		$response = $response | ConvertFrom-Json
 		$rootDir = arrRootDir $response
 	} catch {
-		Write-Debug $_.Exception.Response
+		Write-Debug $_.Exception
 	}
 
 	# Set MediaButler formatting
@@ -724,30 +733,30 @@ function setupArr($ans) {
 		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 	} catch {
-		Write-Debug $_.Exception.Response
+		Write-Debug $_.Exception
 	}
 	if ($response.message -eq "success") {
-		Write-ColorOutput green "Success!"
+		Write-ColorOutput -ForegroundColor green -MessageData "Success!"
 		Write-Information ""
 		Write-Information "Saving the $arr config to MediaButler..."
 		try {
 			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 		} catch {
-			Write-Debug $_.Exception.Response
+			Write-Debug $_.Exception
 		}
 		if ($response.message -eq "success") {
-			Write-ColorOutput green "Done! $arr has been successfully configured for"
-			Write-ColorOutput green "MediaButler with the $($userData.serverName) Plex server."
+			Write-ColorOutput -ForegroundColor green -MessageData "Done! $arr has been successfully configured for"
+			Write-ColorOutput -ForegroundColor green -MessageData "MediaButler with the $($userData.serverName) Plex server."
 			Start-Sleep -s 3
 			Write-Information "Returning you to the Main Menu..."
 			mainMenu
 		}  elseif ($response.message -ne "success") {
-			Write-ColorOutput red "Config push failed! Please try again later."
+			Write-ColorOutput -ForegroundColor red -MessageData "Config push failed! Please try again later."
 			Start-Sleep -s 3
 		}
 	} elseif ($response.message -ne "success") {
-		Write-ColorOutput red "Hmm, something weird happened. Please try again."
+		Write-ColorOutput -ForegroundColor red -MessageData "Hmm, something weird happened. Please try again."
 		Start-Sleep -s 3
 	}
 	if (($ans -gt 10) -And ($ans -lt 20)) {
