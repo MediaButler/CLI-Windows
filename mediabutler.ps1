@@ -19,6 +19,7 @@ $setupChecks = @{
 	"radarr3d"=$false;
 	"tautulli"=$false;
 }
+$isAdmin = $false
 
 # Function to change the color output of text
 # https://blog.kieranties.com/2018/03/26/write-information-with-colours
@@ -63,7 +64,7 @@ function checkPlexAuth() {
 
 		$valid = $false
 		do {
-			$ans = Read-Host 'Enter selection'
+			$ans = Read-Host 'Enter your option'
 			if ($ans -eq 1) {
 				$userData.authToken = plexLogin
 				$mbLoginResponse = mbLogin $userdata.authToken
@@ -104,6 +105,7 @@ function plexLogin() {
 			Write-Information ""
 			Write-Information "Please enter your Plex username:"
 			$plexusername = Read-Host
+			Write-Information ""
 			Write-Information "Please enter your Plex password:"
 			$plexpassword = Read-Host -AsSecureString
 			$credentials = New-Object System.Management.Automation.PSCredential -ArgumentList $plexusername, $plexpassword
@@ -178,6 +180,7 @@ function chooseServer() {
 		$i = 0
 		Write-Information ""
 		Write-Information "Please choose which Plex Server you would like to setup MediaButler for:"
+		Write-Information ""
 		$menu = @{}
 		foreach ($server in $mbLoginResponse.servers) {
 			try {
@@ -192,8 +195,9 @@ function chooseServer() {
 				$menu.Add($i,($serverInfo))
 			}
 		}
+		Write-Information ""
 		do {
-			$ans = Read-Host 'Enter selection'
+			$ans = Read-Host 'Server'
 			$ans = [int]$ans
 			if ($ans -ge 1 -And $ans -le $i) {
 				$valid = $true
@@ -264,8 +268,12 @@ function getMbURL() {
 			} while (-Not ($valid))
 		} catch {
 			# If token doesn't work, ask user and loop until a correct url is given
+			Write-ColorOutput -ForegroundColor red -MessageData "Unable to automatically retrieve your MediaButler URL!"
+			Write-ColorOutput -ForegroundColor yellow -MessageData "This is typically indicative of port 9876 not being forwarded."
+			Write-ColorOutput -ForegroundColor yellow -MessageData "Please check your port forwarding and try again."
 			do {
-				$mbURL = Read-Host 'MediaButler URL'
+				Write-Information "Please enter the correct MediaButler URL:"
+				$mbURL = Read-Host
 				$lastChar = $mbURL.SubString($mbURL.Length - 1)
 				if ($lastChar -ne "/") {
 					$mbURL = "$mbURL/"
@@ -302,7 +310,7 @@ function setupChecks() {
 			$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 		} catch {
-			Write-Debug $_.Exception.Response
+			Write-Debug $_.Exception
 		}
 		if (-Not [string]::IsNullOrEmpty($response.settings)) {
 			$setupChecks.($endpoint) = $true
@@ -310,12 +318,76 @@ function setupChecks() {
 	}
 }
 
+function checkAdmin() {
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/@me/')
+	try {
+		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -UseBasicParsing
+		$response = $response | ConvertFrom-Json
+		if ($response.permissions -contains "ADMIN") {
+			$script:isAdmin = $true
+		}
+	} catch {
+		Write-Debug $_.Exception
+	}
+}
+
 # Print the main menu
-# Returns selection
 function mainMenu() {
 	Write-Information ""
 	Write-Information "*****************************************"
-	Write-Information "*               Main Menu               *"
+	Write-Information "*              ~Main Menu~              *"
+	Write-Information "*****************************************"
+	Write-Information "Please select from the following options:"
+	Write-ColorOutput  -nonewline -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-Information " indicates Admin only)         "
+	Write-Information ""
+	Write-ColorOutput -nonewline -MessageData "1. Configure Applications"; Write-ColorOutput -ForegroundColor red -MessageData "*"
+	Write-Information "2. Media Requests"
+	Write-Information "3. Media Issues"
+	Write-Information "4. Playback Information"
+	Write-Information "5. Library Information"
+	Write-Information "6. Media Search"
+	Write-Information "7. Exit"
+	Write-Information ""
+	do {
+		$ans = Read-Host 'Enter selection'
+		if (-Not(($ans -ge 1) -And ($ans -le 7))) {
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+			$valid = $false
+		} elseif ($ans -eq 1) {
+			$valid = $true
+			requestsMenu
+		} elseif ($ans -eq 2) {
+			$valid = $true
+			issuesMenu
+		} elseif ($ans -eq 3) {
+			$valid = $true
+			playbackMenu
+		} elseif ($ans -eq 4) {
+			$valid = $true
+			searchMenu
+		} elseif ($ans -eq 5) {
+			$valid = $true
+			libraryMenu
+		} elseif ($ans -eq 6) {
+			$valid = $true
+			searchMenu
+		} elseif ($ans -eq 7) {
+			$valid = $true
+			exitMenu
+		}
+	} while (-Not($valid))
+}
+
+# Print the Endpoint Menu
+function endpointMenu() {
+	Write-Information ""
+	Write-Information "*****************************************"
+	Write-Information "*     ~Endpoint Configuration Menu~     *"
 	Write-Information "*****************************************"
 	Write-Information "Please choose which application you would"
 	Write-Information "   like to configure for MediaButler:    "
@@ -362,7 +434,7 @@ function mainMenu() {
 		} elseif ($ans -eq 4) {
 			$valid = $true
 			resetAll
-		}elseif ($ans -eq 5) {
+		} elseif ($ans -eq 5) {
 			$valid = $true
 			exitMenu
 		}
@@ -843,7 +915,10 @@ function main () {
 	checkPlexAuth
 	chooseServer
 	getMbURL
-	setupChecks
+	checkAdmin
+	if ($isAdmin) {
+		setupChecks
+	}
 	mainMenu
 }
 
