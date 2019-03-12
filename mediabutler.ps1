@@ -289,7 +289,7 @@ function getMbURL() {
 	}
 }
 
-# Do status checks on each of the endpoints and see if they're setup
+# Do status checks on each of the endpoints to see if they're setup and set boolean
 function setupChecks() {
 	for ($i=0; $i -lt 6; $i++) {
 		switch ($i) {
@@ -318,6 +318,7 @@ function setupChecks() {
 	}
 }
 
+# Check if logged in user is admin of the chosen server
 function checkAdmin() {
 	$headers = @{
 		"Content-Type"="application/json"
@@ -336,7 +337,7 @@ function checkAdmin() {
 	}
 }
 
-# Print the main menu
+# Print the main menu and get input
 function mainMenu() {
 	Write-Information ""
 	Write-Information "*****************************************"
@@ -360,16 +361,16 @@ function mainMenu() {
 			$valid = $false
 		} elseif ($ans -eq 1) {
 			$valid = $true
-			requestsMenu
+			endpointMenu
 		} elseif ($ans -eq 2) {
 			$valid = $true
-			issuesMenu
+			requestsMenu
 		} elseif ($ans -eq 3) {
 			$valid = $true
-			playbackMenu
+			issuesMenu
 		} elseif ($ans -eq 4) {
 			$valid = $true
-			searchMenu
+			playbackMenu
 		} elseif ($ans -eq 5) {
 			$valid = $true
 			libraryMenu
@@ -383,7 +384,7 @@ function mainMenu() {
 	} while (-Not($valid))
 }
 
-# Print the Endpoint Menu
+# Print the Endpoint Menu and get input
 function endpointMenu() {
 	Write-Information ""
 	Write-Information "*****************************************"
@@ -436,11 +437,143 @@ function endpointMenu() {
 			resetAll
 		} elseif ($ans -eq 5) {
 			$valid = $true
-			exitMenu
+			mainMenu
 		}
 	} while (-Not($valid))
 }
 
+# Print the Requests Menu and get input
+function requestsMenu() {
+	Write-Information ""
+	Write-Information "*****************************************"
+	Write-Information '*            ~Requests Menu~            *'
+	Write-Information "*****************************************"
+	Write-Information "Please select from the following options:"
+	Write-ColorOutput  -nonewline -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-Information " indicates Admin only)         "
+	Write-Information ""
+	Write-Information "1. Submit Request"
+	Write-ColorOutput  -nonewline -MessageData "2. Manage Requests"; Write-ColorOutput -ForegroundColor red "*"
+	Write-Information "3. Back to Main Menu"
+	Write-Information ""
+	do {
+		$ans = Read-Host 'Enter selection'
+		if (-Not(($ans -ge 1) -And ($ans -le 7))) {
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+			$valid = $false
+		} elseif ($ans -eq 1) {
+			$valid = $true
+			submitRequest
+		} elseif ($ans -eq 2) {
+			$valid = $true
+			manageRequests
+		} elseif ($ans -eq 3) {
+			$valid = $true
+			mainMenu
+		}
+	} while (-Not($valid))
+}
+
+# Print the Issues menu and get input
+function issuesMenu() {
+	Write-Information ""
+	Write-Information "*****************************************"
+	Write-Information '*             ~Issues Menu~             *'
+	Write-Information "*****************************************"
+	Write-Information "Please select from the following options:"
+	Write-ColorOutput  -nonewline -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-Information " indicates Admin only)         "
+	Write-Information ""
+	Write-Information "1. Add Issue"
+	Write-ColorOutput  -nonewline -MessageData "2. Manage Issues"; Write-ColorOutput -ForegroundColor red "*"
+	Write-Information "3. Back to Main Menu"
+	Write-Information ""
+	do {
+		$ans = Read-Host 'Enter selection'
+		if (-Not(($ans -ge 1) -And ($ans -le 7))) {
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+			$valid = $false
+		} elseif ($ans -eq 1) {
+			$valid = $true
+			addIssue
+		} elseif ($ans -eq 2) {
+			$valid = $true
+			manageIssues
+		} elseif ($ans -eq 3) {
+			$valid = $true
+			mainMenu
+		}
+	} while (-Not($valid))
+}
+
+# Print the Playback Menu and get input
+function playbackMenu() {
+	Write-Information ""
+	Write-Information "*****************************************"
+	Write-Information '*            ~Playback Menu~            *'
+	Write-Information "*****************************************"
+	Write-Information "Please select from the following options:"
+	Write-ColorOutput  -nonewline -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-Information " indicates Admin only)         "
+	Write-Information ""
+	Write-Information "1. Playback History"
+	Write-ColorOutput  -nonewline -MessageData "2. Now Playing"; Write-ColorOutput -ForegroundColor red "*"
+	Write-Information "3. Back to Main Menu"
+	Write-Information ""
+	do {
+		$ans = Read-Host 'Enter selection'
+		if (-Not(($ans -ge 1) -And ($ans -le 7))) {
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+			$valid = $false
+		} elseif ($ans -eq 1) {
+			$valid = $true
+			playbackHistory
+		} elseif ($ans -eq 2) {
+			$valid = $true
+			nowPlaying
+		} elseif ($ans -eq 3) {
+			$valid = $true
+			mainMenu
+		}
+	} while (-Not($valid))
+}
+
+# Print the Search Menu and get input
+function searchMenu() {
+	Write-Information ""
+	Write-Information "*****************************************"
+	Write-Information '*             ~Search Menu~             *'
+	Write-Information "*****************************************"
+	Write-Information "Please select from the following options:"
+	Write-ColorOutput  -nonewline -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-Information " indicates Admin only)         "
+	Write-Information ""
+	Write-Information "1. TV Show"
+	Write-Information "2. Movie"
+	Write-Information "3. Music"
+	Write-Information "4. Back to Main Menu"
+	Write-Information ""
+	do {
+		$ans = Read-Host 'Enter selection'
+		if (-Not(($ans -ge 1) -And ($ans -le 7))) {
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+			$valid = $false
+		} elseif ($ans -eq 1) {
+			$valid = $true
+			Write-Information "Not setup yet"
+			searchMenu
+		} elseif ($ans -eq 2) {
+			$valid = $true
+			Write-Information "Not setup yet"
+			searchMenu
+		} elseif ($ans -eq 3) {
+			$valid = $true
+			Write-Information "Not setup yet"
+			searchMenu
+		}elseif ($ans -eq 4) {
+			$valid = $true
+			mainMenu
+		}
+	} while (-Not($valid))
+}
+
+# Print the Exit Menu
 function exitMenu() {
 	Write-Information ""
 	Write-Information "This will exit the program and any unfinished config setup will be lost."
