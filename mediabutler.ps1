@@ -416,7 +416,7 @@ function endpointMenu() {
 		Write-ColorOutput -ForegroundColor red -MessageData "Tautulli"
 	}
 	Write-Information "4. Reset"
-	Write-Information "5. Exit"
+	Write-Information "5. Return to Main Menu"
 	Write-Information ""
 	do {
 		$ans = Read-Host 'Enter selection'
@@ -1040,6 +1040,105 @@ function setupArr($ans) {
 	} elseif (($ans -gt 20) -And ($ans -lt 30)) {
 		radarrMenu
 	}
+}
+
+
+function submitRequest() {
+	Write-Information ""
+	Write-Information "What would you like to request?"
+	Write-Information ""
+	Write-Information "1. TV"
+	Write-Information "2. Movie"
+	Write-Information ""
+	do {
+		$ans = Read-Host 'Enter selection'
+		if (-Not(($ans -ge 1) -And ($ans -le 2))) {
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+			$valid = $false
+		} elseif ($ans -eq 1) {
+			$valid = $true
+			$type="tv"
+		} elseif ($ans -eq 2) {
+			$valid = $true
+			$type="movie"
+		}
+	} while (-Not($valid))
+	Write-Information ""
+	if ($type -eq "tv") {
+		Write-Information "What show would you like to request?"
+	} elseif ($type -eq "movie") {
+		Write-Information "What movie would you like to request?"
+	}
+	$ans = Read-Host
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	$formattedURL = [System.String]::Concat(($userData.mbURL), ($type), "?query=", $ans)
+	try {
+		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -UseBasicParsing
+		$response = $response | ConvertFrom-Json
+		Write-Information ""
+		Write-Information "Here are your results:"
+		$menu = @{}
+		$i = 0
+		foreach ($result in $response.results) {
+			$i++
+			if ($type -eq "tv") {
+				Write-Information "$i. $($result.seriesName)"
+				$resultInfo = @{"title"="$($result.seriesName)"; "id"="$($result.id)";};
+			} elseif ($type -eq "movie") {
+				Write-Information "$i. $($result.title) ($($result.year))"
+				$resultInfo = @{"title"="$($result.title)"; "id"="$($result.imdbid)";};
+			}
+			$menu.Add($i,($resultInfo))
+		}
+		Write-Information ""
+		Write-Information "Which would you like to request?"
+		$ans = Read-Host
+		$ans = [int]$ans
+		if ($ans -ge 1 -And $ans -le $i) {
+			$valid = $true
+			$id = $menu.Item($ans).id
+			$title = $menu.Item($ans).title
+		} else {
+			$valid = $false
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+			requestsMenu
+		}
+	} catch {
+		Write-Debug $_.Exception
+	}
+	Write-Information ""
+	Write-Information "Sending your request to the server..."
+	#try {
+		$body = @{}
+		if ($type -eq "tv") {
+			$body = @{
+				"type"=$type;
+				"title"=$title
+				"tvdbId"=$id
+			};
+		} elseif ($type -eq "movie") {
+			$body = @{
+				"type"=$type;
+				"title"=$title
+				"imdbId"=$id
+			};
+		}
+		Write-Information "Type: $type, Title: $title, ID: $id"
+		$body = $body | ConvertTo-Json
+		$formattedURL = [System.String]::Concat(($userData.mbURL), "requests")
+		$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -ContentType "application/json"  -UseBasicParsing
+		Write-ColorOutput -ForegroundColor green -MessageData "Success! $title has been requested."
+	#} catch {
+		#Write-ColorOutput -ForegroundColor red -MessageData "There was an error trying to add $title."
+		Write-Debug $_.Exception.Response
+	#}
+	Write-Information "Returning you to the Main Menu..."
+	Start-Sleep -s 3
+	mainMenu
 }
 
 function main () {
