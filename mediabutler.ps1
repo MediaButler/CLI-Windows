@@ -360,8 +360,13 @@ function mainMenu() {
 			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 			$valid = $false
 		} elseif ($ans -eq 1) {
-			$valid = $true
-			endpointMenu
+			if (-Not ($isAdmin)) {
+				$valid = $false
+				Write-ColorOutput -ForegroundColor red -MessageData "You do not have permission to access this menu!"
+			} elseif ($isAdmin) {
+				$valid = $true
+				endpointMenu
+			}
 		} elseif ($ans -eq 2) {
 			$valid = $true
 			requestsMenu
@@ -464,8 +469,13 @@ function requestsMenu() {
 			$valid = $true
 			submitRequest
 		} elseif ($ans -eq 2) {
-			$valid = $true
-			manageRequests
+			if (-Not ($isAdmin)) {
+				$valid = $false
+				Write-ColorOutput -ForegroundColor red -MessageData "You do not have permission to access this menu!"
+			} elseif ($isAdmin) {
+				$valid = $true
+				manageRequests
+			}
 		} elseif ($ans -eq 3) {
 			$valid = $true
 			mainMenu
@@ -495,8 +505,13 @@ function issuesMenu() {
 			$valid = $true
 			addIssue
 		} elseif ($ans -eq 2) {
-			$valid = $true
-			manageIssues
+			if (-Not ($isAdmin)) {
+				$valid = $false
+				Write-ColorOutput -ForegroundColor red -MessageData "You do not have permission to access this menu!"
+			} elseif ($isAdmin) {
+				$valid = $true
+				manageIssues
+			}
 		} elseif ($ans -eq 3) {
 			$valid = $true
 			mainMenu
@@ -526,8 +541,13 @@ function playbackMenu() {
 			$valid = $true
 			playbackHistory
 		} elseif ($ans -eq 2) {
-			$valid = $true
-			nowPlaying
+			if (-Not ($isAdmin)) {
+				$valid = $false
+				Write-ColorOutput -ForegroundColor red -MessageData "You do not have permission to access this menu!"
+			} elseif ($isAdmin) {
+				$valid = $true
+				nowPlaying
+			}
 		} elseif ($ans -eq 3) {
 			$valid = $true
 			mainMenu
@@ -1043,6 +1063,7 @@ function setupArr($ans) {
 }
 
 
+# Submit a TV or Movie Request
 function submitRequest() {
 	Write-Information ""
 	Write-Information "What would you like to request?"
@@ -1099,11 +1120,9 @@ function submitRequest() {
 		$ans = Read-Host
 		$ans = [int]$ans
 		if ($ans -ge 1 -And $ans -le $i) {
-			$valid = $true
 			$id = $menu.Item($ans).id
 			$title = $menu.Item($ans).title
 		} else {
-			$valid = $false
 			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 			requestsMenu
 		}
@@ -1112,7 +1131,7 @@ function submitRequest() {
 	}
 	Write-Information ""
 	Write-Information "Sending your request to the server..."
-	#try {
+	try {
 		$body = @{}
 		if ($type -eq "tv") {
 			$body = @{
@@ -1127,18 +1146,105 @@ function submitRequest() {
 				"imdbId"=$id
 			};
 		}
-		Write-Information "Type: $type, Title: $title, ID: $id"
 		$body = $body | ConvertTo-Json
 		$formattedURL = [System.String]::Concat(($userData.mbURL), "requests")
 		$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -ContentType "application/json"  -UseBasicParsing
 		Write-ColorOutput -ForegroundColor green -MessageData "Success! $title has been requested."
-	#} catch {
-		#Write-ColorOutput -ForegroundColor red -MessageData "There was an error trying to add $title."
-		Write-Debug $_.Exception.Response
-	#}
-	Write-Information "Returning you to the Main Menu..."
+	} catch {
+		Write-Debug $_.ErrorDetails.Message
+		$error = $_.ErrorDetails.Message | ConvertFrom-Json
+		if ($error.message -eq "Item Exists") {
+			Write-ColorOutput -ForegroundColor red -MessageData "$title has already been added."
+		} elseif ($error.message -eq "Request already exists") {
+			Write-ColorOutput -ForegroundColor red -MessageData "$title has already been requested."
+		}
+	}
+	Write-Information "Returning you to the Requests Menu..."
 	Start-Sleep -s 3
-	mainMenu
+	requestsMenu
+}
+
+# View Requests
+function manageRequests() {
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	$formattedURL = [System.String]::Concat(($userData.mbURL), "requests")
+	Write-Information ""
+	Write-Information "Here are the current requests:"
+	$menu = @{}
+	$i = 0
+	try {
+		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -ContentType "application/json"  -UseBasicParsing
+		$response = $response | ConvertFrom-Json
+		foreach ($request in $response) {
+			$i++
+			Write-Information "$i. $($request.title) ($($request.type)) requested by $($request.username)"
+			$requestInfo = @{"title"="$($request.title)"; "id"="$($request._id)";};
+			$menu.Add($i,($requestInfo))
+		}
+	} catch {
+		Write-Debug $_.Exception
+	}
+	Write-Information ""
+	Write-Information "Which request would you like to manage?"
+	$ans = Read-Host
+	$ans = [int]$ans
+	if ($ans -ge 1 -And $ans -le $i) {
+		$id = $menu.Item($ans).id
+		$title = $menu.Item($ans).title
+	} else {
+		Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+		Start-Sleep -s 3
+		requestsMenu
+	}
+	Write-Information ""
+	Write-Information "What would you like to do?"
+	Write-Information ""
+	Write-Information "1. Delete"
+	Write-Information "2. To be added"
+	Write-Information ""
+	$ans = Read-Host 'Enter selection'
+	if (-Not(($ans -ge 1) -And ($ans -le 2))) {
+		Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+		requestsMenu
+	} elseif ($ans -eq 1) {
+		Write-Information ""
+		Write-Information "Are you sure you want to delete this request?"
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -MessageData "o";
+		$valid = $false
+		do {
+			$answ = Read-Host
+			if (($answ -notlike "y") -And ($answ -notlike "yes") -And ($answ -notlike "n") -And ($answ -notlike "no")) {
+				Write-ColorOutput -ForegroundColor red -MessageData "Please specify yes, y, no, or n."
+				$valid = $false
+			} elseif (($answ -like "y") -Or ($answ -like "yes")) {
+				$valid = $true
+				$formattedURL = [System.String]::Concat(($userData.mbURL), "requests/", ($id))
+				try {
+					$response = Invoke-WebRequest -Uri $formattedURL -Method DEL -Headers $headers -ContentType "application/json"  -UseBasicParsing
+					$response = $response | ConvertFrom-Json
+					Write-ColorOutput -ForegroundColor green -nonewline -MessageData "Success! The request for $title has been deleted."
+					Write-Information ""
+					Write-Information "Returning you to the Requests Menu..."
+					Start-Sleep -s 3
+					requestsMenu
+				} catch {
+					Write-Debug $_.Exception
+				}
+				requestsMenu
+			} else {
+				Write-Information "Returning you to the Requests Menu..."
+				Start-Sleep -s 3
+				requestsMenu
+			}
+		} while (-Not ($valid))
+	} elseif ($ans -eq 2) {
+		requestsMenu
+	}
 }
 
 function main () {
