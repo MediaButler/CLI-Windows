@@ -1204,7 +1204,7 @@ function manageRequests() {
 	Write-Information "What would you like to do?"
 	Write-Information ""
 	Write-Information "1. Delete"
-	Write-Information "2. To be added"
+	Write-Information "2. Approve"
 	Write-Information ""
 	$ans = Read-Host 'Enter selection'
 	if (-Not(($ans -ge 1) -And ($ans -le 2))) {
@@ -1243,9 +1243,178 @@ function manageRequests() {
 			}
 		} while (-Not ($valid))
 	} elseif ($ans -eq 2) {
+		$formattedURL = [System.String]::Concat(($userData.mbURL), "requests/", ($id))
+		try {
+			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -ContentType "application/json"  -UseBasicParsing
+			$response = $response | ConvertFrom-Json
+			Write-ColorOutput -ForegroundColor green -nonewline -MessageData "Success! The request for $title has been approved."
+			Write-Information ""
+			Write-Information "Returning you to the Requests Menu..."
+			Start-Sleep -s 3
+			requestsMenu
+		} catch {
+			Write-Debug $_.Exception
+		}
 		requestsMenu
 	}
 }
+
+<#function addIssue() {
+	Write-Information ""
+	Write-Information "What is your issue?"
+	$ans = Read-Host
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	$body = @{
+		"issue"=$ans
+	};
+	$formattedURL = [System.String]::Concat(($userData.mbURL), "/issue")
+	try {
+		$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -UseBasicParsing
+		$response = $response | ConvertFrom-Json
+		Write-Information ""
+		Write-Information "Here are your results:"
+		$menu = @{}
+		$i = 0
+		foreach ($result in $response.results) {
+			$i++
+			Write-Information "$i. $($result.seriesName)"
+			$resultInfo = @{"title"="$($result.seriesName)"; "id"="$($result.id)";};
+			$menu.Add($i,($resultInfo))
+		}
+		Write-Information ""
+		Write-Information "Which would you like to request?"
+		$ans = Read-Host
+		$ans = [int]$ans
+		if ($ans -ge 1 -And $ans -le $i) {
+			$id = $menu.Item($ans).id
+			$title = $menu.Item($ans).title
+		} else {
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+			requestsMenu
+		}
+	} catch {
+		Write-Debug $_.Exception
+	}
+	Write-Information ""
+	Write-Information "Sending your issue to the server..."
+	try {
+		$body = @{}
+		if ($type -eq "tv") {
+			$body = @{
+				"type"=$type;
+				"title"=$title
+				"tvdbId"=$id
+			};
+		} elseif ($type -eq "movie") {
+			$body = @{
+				"type"=$type;
+				"title"=$title
+			};
+		}
+		$body = $body | ConvertTo-Json
+		$formattedURL = [System.String]::Concat(($userData.mbURL), "requests")
+		$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -ContentType "application/json"  -UseBasicParsing
+		Write-ColorOutput -ForegroundColor green -MessageData "Success! $title has been requested."
+	} catch {
+		Write-Debug $_.ErrorDetails.Message
+		$error = $_.ErrorDetails.Message | ConvertFrom-Json
+		if ($error.message -eq "Item Exists") {
+			Write-ColorOutput -ForegroundColor red -MessageData "$title has already been added."
+		} elseif ($error.message -eq "Request already exists") {
+			Write-ColorOutput -ForegroundColor red -MessageData "$title has already been requested."
+		}
+	}
+	Write-Information "Returning you to the Issues Menu..."
+	Start-Sleep -s 3
+	issuesMenu
+}
+
+# View Requests
+function manageIssues() {
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	$formattedURL = [System.String]::Concat(($userData.mbURL), "requests")
+	Write-Information ""
+	Write-Information "Here are the current requests:"
+	$menu = @{}
+	$i = 0
+	try {
+		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -ContentType "application/json"  -UseBasicParsing
+		$response = $response | ConvertFrom-Json
+		foreach ($issue in $response) {
+			$i++
+			Write-Information "$i. $($issue.title) ($($issue.type)) requested by $($issue.username)"
+			$requestInfo = @{"title"="$($issue.title)"; "id"="$($issue._id)";};
+			$menu.Add($i,($requestInfo))
+		}
+	} catch {
+		Write-Debug $_.Exception
+	}
+	Write-Information ""
+	Write-Information "Which request would you like to manage?"
+	$ans = Read-Host
+	$ans = [int]$ans
+	if ($ans -ge 1 -And $ans -le $i) {
+		$id = $menu.Item($ans).id
+		$title = $menu.Item($ans).title
+	} else {
+		Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+		Start-Sleep -s 3
+		requestsMenu
+	}
+	Write-Information ""
+	Write-Information "What would you like to do?"
+	Write-Information ""
+	Write-Information "1. Delete"
+	Write-Information "2. To be added"
+	Write-Information ""
+	$ans = Read-Host 'Enter selection'
+	if (-Not(($ans -ge 1) -And ($ans -le 2))) {
+		Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+		requestsMenu
+	} elseif ($ans -eq 1) {
+		Write-Information ""
+		Write-Information "Are you sure you want to delete this request?"
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -MessageData "o";
+		$valid = $false
+		do {
+			$answ = Read-Host
+			if (($answ -notlike "y") -And ($answ -notlike "yes") -And ($answ -notlike "n") -And ($answ -notlike "no")) {
+				Write-ColorOutput -ForegroundColor red -MessageData "Please specify yes, y, no, or n."
+				$valid = $false
+			} elseif (($answ -like "y") -Or ($answ -like "yes")) {
+				$valid = $true
+				$formattedURL = [System.String]::Concat(($userData.mbURL), "issues/", ($id))
+				try {
+					$response = Invoke-WebRequest -Uri $formattedURL -Method DEL -Headers $headers -ContentType "application/json"  -UseBasicParsing
+					$response = $response | ConvertFrom-Json
+					Write-ColorOutput -ForegroundColor green -nonewline -MessageData "Success! The request for $title has been deleted."
+					Write-Information ""
+					Write-Information "Returning you to the Requests Menu..."
+					Start-Sleep -s 3
+					requestsMenu
+				} catch {
+					Write-Debug $_.Exception
+				}
+				requestsMenu
+			} else {
+				Write-Information "Returning you to the Requests Menu..."
+				Start-Sleep -s 3
+				requestsMenu
+			}
+		} while (-Not ($valid))
+	} elseif ($ans -eq 2) {
+		requestsMenu
+	}
+}#>
 
 function main () {
 	Write-Information "Welcome to the MediaButler setup utility!"
