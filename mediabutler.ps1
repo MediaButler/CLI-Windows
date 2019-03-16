@@ -5,6 +5,7 @@ using namespace System.Management.Automation
 
 # Define variables
 $InformationPreference = 'Continue'
+$Host.UI.RawUI.BackgroundColor = 'Black'
 $uuid = "fb67fb8b-9000-4a70-a67b-2f2b626780bb"
 $userDataPath = '.\userData.json'
 $plexLoginURL = "https://plex.tv/users/sign_in.json"
@@ -20,6 +21,7 @@ $setupChecks = @{
 	"tautulli"=$false;
 }
 $isAdmin = $false
+Clear-Host
 
 # Function to change the color output of text
 # https://blog.kieranties.com/2018/03/26/write-information-with-colours
@@ -1066,14 +1068,19 @@ function setupArr($ans) {
 # Submit a TV or Movie Request
 function submitRequest() {
 	Write-Information ""
+	Write-Information "*****************************************"
+	Write-Information "*          ~Submit A Request~           *"
+	Write-Information "*****************************************"
 	Write-Information "What would you like to request?"
 	Write-Information ""
 	Write-Information "1. TV"
 	Write-Information "2. Movie"
+	Write-Information "3. Music"
+	Write-Information "4. Back to Main Menu"
 	Write-Information ""
 	do {
 		$ans = Read-Host 'Enter selection'
-		if (-Not(($ans -ge 1) -And ($ans -le 2))) {
+		if (-Not(($ans -ge 1) -And ($ans -le 4))) {
 			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 			$valid = $false
 		} elseif ($ans -eq 1) {
@@ -1082,6 +1089,14 @@ function submitRequest() {
 		} elseif ($ans -eq 2) {
 			$valid = $true
 			$type="movie"
+		} elseif ($ans -eq 3) {
+			$valid = $true
+			$type="music"
+			Write-ColorOutput -ForegroundColor red -MessageData "Not configured yet!"
+			resultsMenu
+		} elseif ($ans -eq 4) {
+			$valid = $true
+			mainMenu
 		}
 	} while (-Not($valid))
 	Write-Information ""
@@ -1089,6 +1104,8 @@ function submitRequest() {
 		Write-Information "What show would you like to request?"
 	} elseif ($type -eq "movie") {
 		Write-Information "What movie would you like to request?"
+	} elseif ($type -eq "music") {
+		Write-Information "What music would you like to request?"
 	}
 	$ans = Read-Host
 	$headers = @{
@@ -1115,17 +1132,27 @@ function submitRequest() {
 			}
 			$menu.Add($i,($resultInfo))
 		}
-		Write-Information ""
-		Write-Information "Which would you like to request?"
-		$ans = Read-Host
-		$ans = [int]$ans
-		if ($ans -ge 1 -And $ans -le $i) {
-			$id = $menu.Item($ans).id
-			$title = $menu.Item($ans).title
-		} else {
-			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
-			requestsMenu
-		}
+		$i++
+		Write-Information "$i. Cancel"
+		$resultInfo = @{"title"="Cancel"; "id"="Cancel";};
+		$menu.Add($i,($resultInfo))
+		do {
+			Write-Information ""
+			Write-Information "Which would you like to request?"
+			$ans = Read-Host
+			$ans = [int]$ans
+			if ($ans -ge 1 -And $ans -lt $i) {
+				$id = $menu.Item($ans).id
+				$title = $menu.Item($ans).title
+				$valid = $true
+			} elseif ($ans -eq $i) {
+				$valid = $true
+				requestsMenu
+			} else {
+				$valid = $false
+				Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+			}
+		} while (-Not($valid))
 	} catch {
 		Write-Debug $_.Exception
 	}
@@ -1152,10 +1179,10 @@ function submitRequest() {
 		Write-ColorOutput -ForegroundColor green -MessageData "Success! $title has been requested."
 	} catch {
 		Write-Debug $_.ErrorDetails.Message
-		$error = $_.ErrorDetails.Message | ConvertFrom-Json
-		if ($error.message -eq "Item Exists") {
+		$err = $_.ErrorDetails.Message | ConvertFrom-Json
+		if ($err.message -eq "Item Exists") {
 			Write-ColorOutput -ForegroundColor red -MessageData "$title has already been added."
-		} elseif ($error.message -eq "Request already exists") {
+		} elseif ($err.message -eq "Request already exists") {
 			Write-ColorOutput -ForegroundColor red -MessageData "$title has already been requested."
 		}
 	}
@@ -1185,78 +1212,95 @@ function manageRequests() {
 			$requestInfo = @{"title"="$($request.title)"; "id"="$($request._id)";};
 			$menu.Add($i,($requestInfo))
 		}
+		$i++
+		Write-Information "$i. Cancel"
+		$resultInfo = @{"title"="Cancel"; "id"="Cancel";};
+		$menu.Add($i,($resultInfo))
 	} catch {
 		Write-Debug $_.Exception
 	}
-	Write-Information ""
-	Write-Information "Which request would you like to manage?"
-	$ans = Read-Host
-	$ans = [int]$ans
-	if ($ans -ge 1 -And $ans -le $i) {
-		$id = $menu.Item($ans).id
-		$title = $menu.Item($ans).title
-	} else {
-		Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
-		Start-Sleep -s 3
-		requestsMenu
-	}
+	do {
+		Write-Information ""
+		Write-Information "Which request would you like to manage?"
+		$ans = Read-Host
+		$ans = [int]$ans
+		if ($ans -ge 1 -And $ans -lt $i) {
+			$valid = $true
+			$id = $menu.Item($ans).id
+			$title = $menu.Item($ans).title
+		} elseif ($ans -eq $i) {
+			$valid = $true
+			requestsMenu
+		} else {
+			$valid = $false
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+		}
+	} while (-Not($valid))
 	Write-Information ""
 	Write-Information "What would you like to do?"
 	Write-Information ""
 	Write-Information "1. Delete"
 	Write-Information "2. Approve"
+	Write-Information "3. Cancel"
 	Write-Information ""
-	$ans = Read-Host 'Enter selection'
-	if (-Not(($ans -ge 1) -And ($ans -le 2))) {
-		Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
-		requestsMenu
-	} elseif ($ans -eq 1) {
-		Write-Information ""
-		Write-Information "Are you sure you want to delete this request?"
-		Write-Information ""
-		Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -MessageData "o";
-		$valid = $false
-		do {
-			$answ = Read-Host
-			if (($answ -notlike "y") -And ($answ -notlike "yes") -And ($answ -notlike "n") -And ($answ -notlike "no")) {
-				Write-ColorOutput -ForegroundColor red -MessageData "Please specify yes, y, no, or n."
-				$valid = $false
-			} elseif (($answ -like "y") -Or ($answ -like "yes")) {
-				$valid = $true
-				$formattedURL = [System.String]::Concat(($userData.mbURL), "requests/", ($id))
-				try {
-					$response = Invoke-WebRequest -Uri $formattedURL -Method DEL -Headers $headers -ContentType "application/json"  -UseBasicParsing
-					$response = $response | ConvertFrom-Json
-					Write-ColorOutput -ForegroundColor green -nonewline -MessageData "Success! The request for $title has been deleted."
-					Write-Information ""
+	do {
+		$ans = Read-Host 'Enter selection'
+		if (-Not(($ans -ge 1) -And ($ans -le 3))) {
+			$valid = $false
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+		} elseif ($ans -eq 1) {
+			$valid = $true
+			Write-Information ""
+			Write-Information "Are you sure you want to delete this request?"
+			Write-Information ""
+			Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -MessageData "o";
+			$valid = $false
+			do {
+				$answ = Read-Host
+				if (($answ -notlike "y") -And ($answ -notlike "yes") -And ($answ -notlike "n") -And ($answ -notlike "no")) {
+					Write-ColorOutput -ForegroundColor red -MessageData "Please specify yes, y, no, or n."
+					$valid = $false
+				} elseif (($answ -like "y") -Or ($answ -like "yes")) {
+					$valid = $true
+					$formattedURL = [System.String]::Concat(($userData.mbURL), "requests/", ($id))
+					try {
+						$response = Invoke-WebRequest -Uri $formattedURL -Method DEL -Headers $headers -ContentType "application/json"  -UseBasicParsing
+						$response = $response | ConvertFrom-Json
+						Write-ColorOutput -ForegroundColor green -nonewline -MessageData "Success! The request for $title has been deleted."
+						Write-Information ""
+						Write-Information "Returning you to the Requests Menu..."
+						Start-Sleep -s 3
+						requestsMenu
+					} catch {
+						Write-Debug $_.Exception
+					}
+					requestsMenu
+				} else {
 					Write-Information "Returning you to the Requests Menu..."
 					Start-Sleep -s 3
 					requestsMenu
-				} catch {
-					Write-Debug $_.Exception
 				}
-				requestsMenu
-			} else {
+			} while (-Not ($valid))
+		} elseif ($ans -eq 2) {
+			$valid = $true
+			$formattedURL = [System.String]::Concat(($userData.mbURL), "requests/", ($id))
+			try {
+				$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -ContentType "application/json"  -UseBasicParsing
+				$response = $response | ConvertFrom-Json
+				Write-ColorOutput -ForegroundColor green -nonewline -MessageData "Success! The request for $title has been approved."
+				Write-Information ""
 				Write-Information "Returning you to the Requests Menu..."
 				Start-Sleep -s 3
 				requestsMenu
+			} catch {
+				Write-Debug $_.Exception
 			}
-		} while (-Not ($valid))
-	} elseif ($ans -eq 2) {
-		$formattedURL = [System.String]::Concat(($userData.mbURL), "requests/", ($id))
-		try {
-			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -ContentType "application/json"  -UseBasicParsing
-			$response = $response | ConvertFrom-Json
-			Write-ColorOutput -ForegroundColor green -nonewline -MessageData "Success! The request for $title has been approved."
-			Write-Information ""
-			Write-Information "Returning you to the Requests Menu..."
-			Start-Sleep -s 3
 			requestsMenu
-		} catch {
-			Write-Debug $_.Exception
+		}elseif ($ans -eq 3) {
+			$valid = $true
+			requestsMenu
 		}
-		requestsMenu
-	}
+	} while (-Not($valid))
 }
 
 <#function addIssue() {
@@ -1415,6 +1459,96 @@ function manageIssues() {
 		requestsMenu
 	}
 }#>
+
+# Print the playback history for the current user/server
+function playbackHistory() {
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	$formattedURL = [System.String]::Concat(($userData.mbURL), "tautulli/history")
+	#try {
+		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -UseBasicParsing
+		$response = $response | ConvertFrom-Json
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor cyan -MessageData "============================================================"
+		if (-Not [string]::IsNullOrEmpty($response.response.data.data)) {
+			[Int]$count = [String]$response.response.data.total_duration.length
+			if ($count -le 8) {
+				$tabs = "`t`t`t`t"
+			} elseif ($count -gt 8 -And $count -le 16) {
+				$tabs = "`t`t`t"
+			} elseif ($count -gt 16 -And $count -le 24) {
+				$tabs = "`t`t"
+			} elseif ($count -gt 24) {
+				$tabs = "`t"
+			}
+			Write-Information "Total Duration`t`t`tShown Duration"
+			Write-ColorOutput -ForegroundColor green -MessageData "$($response.response.data.total_duration)$($tabs)$($response.response.data.filter_duration)"
+			foreach ($item in $response.response.data.data) {
+				if ($item.media_type -eq "movie") {
+					$title = "$($item.full_title) ($($item.year))"
+				} elseif ($item.media_type -eq "Episode") {
+					$season = [String]$item.parent_media_index
+					$episode = [String]$item.media_index
+					$title = "$($item.full_title) - S$($season.PadLeft(2,'0'))E$($episode.PadLeft(2,'0'))"
+				} elseif ($item.media_type -eq "track") {
+					$title = "$($item.full_title)"
+				}
+				[Int]$duration = [Int]$item.stopped - [Int]$item.started
+				[Int]$mins = $duration/60
+				[Int]$secs = $duration%60
+				$friendlyDuration = "[$($mins)m $($secs)s]"
+				$playbackType = (Get-Culture).TextInfo.ToTitleCase($item.transcode_decision)
+				Write-Information $title
+				Write-ColorOutput -ForegroundColor gray -MessageData "$($playbackType) - $($item.platform) - $($item.player) $friendlyDuration"
+			}
+			Write-ColorOutput -ForegroundColor cyan -MessageData "============================================================"
+		}
+	#} catch {
+	#	Write-Debug $_.Exception
+	#}
+}
+
+# Get what is currently playing on the server
+function nowPlaying() {
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	$formattedURL = [System.String]::Concat(($userData.mbURL), "tautulli/activity")
+	try {
+		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -UseBasicParsing
+		$response = $response | ConvertFrom-Json
+		foreach ($session in $response.data.sessions) {
+			if ($session.media_type -eq "episode") {
+				$title = "$($session.grandparent_title) - S$($session.parent_media_index.PadLeft(2,'0'))E$($session.media_index.PadLeft(2,'0')) - $($session.title)"
+			} elseif ($session.media_type -eq "movie") {
+				$title = "$($session.title) ($($session.year))"
+			} elseif ($session.media_type -eq "track") {
+				$title = "$($session.grandparent_title) - $($session.parent_title) - $($session.title)"
+			}
+			$state = (Get-Culture).TextInfo.ToTitleCase($session.state)
+			$playbackType = (Get-Culture).TextInfo.ToTitleCase($session.transcode_decision)
+			Write-Information ""
+			Write-ColorOutput -ForegroundColor cyan -MessageData "============================================================"
+			Write-ColorOutput -ForegroundColor magenta -nonewline -MessageData "Playback: "; Write-Information $state
+			Write-ColorOutput -ForegroundColor magenta -nonewline -MessageData "User: "; Write-Information $session.username
+			Write-ColorOutput -ForegroundColor magenta -nonewline -MessageData "IP Address: "; Write-Information $session.ip_address
+			Write-ColorOutput -ForegroundColor magenta -nonewline -MessageData "Device: "; Write-Information $session.device
+			Write-ColorOutput -ForegroundColor magenta -nonewline -MessageData "Playing: "; Write-Information $title
+			Write-ColorOutput -ForegroundColor magenta -nonewline -MessageData "Playback Type: "; Write-Information $playbackType
+			Write-ColorOutput -ForegroundColor magenta -nonewline -MessageData "Profile: "; Write-Information $session.quality_profile
+			Write-ColorOutput -ForegroundColor magenta -nonewline -MessageData "Session Key: "; Write-Information $session.session_key
+			Write-ColorOutput -ForegroundColor cyan -MessageData "============================================================"
+		}
+	} catch {
+		Write-Information $_.Exception
+	}
+	playbackMenu
+}
 
 function main () {
 	Write-Information "Welcome to the MediaButler setup utility!"
