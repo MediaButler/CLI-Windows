@@ -391,6 +391,8 @@ function mainMenu() {
 				$valid = $false
 				Write-Information ""
 				Write-ColorOutput -ForegroundColor red -MessageData "You do not have permission to access this menu!"
+				Start-Sleep -s 3
+				Clear-Host
 			} elseif ($isAdmin) {
 				$valid = $true
 				endpointMenu
@@ -479,6 +481,7 @@ function endpointMenu() {
 			setupTautulli
 		} elseif ($ans -eq 4) {
 			$valid = $true
+			Clear-Host
 			mainMenu
 		}
 	} while (-Not($valid))
@@ -517,12 +520,16 @@ function requestsMenu() {
 				$valid = $false
 				Write-Information ""
 				Write-ColorOutput -ForegroundColor red -MessageData "You do not have permission to access this menu!"
+				Start-Sleep -s 3
+				Clear-Host
+				mainMenu
 			} elseif ($isAdmin) {
 				$valid = $true
 				manageRequests
 			}
 		} elseif ($ans -eq 3) {
 			$valid = $true
+			Clear-Host
 			mainMenu
 		}
 	} while (-Not($valid))
@@ -556,21 +563,29 @@ function issuesMenu() {
 			$valid = $true
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor red -MessageData "Not setup yet!"
+			Start-Sleep -s 3
+			Clear-Host
 			mainMenu
 			#addIssue
 		} elseif ($ans -eq 2) {
 			if (-Not ($isAdmin)) {
 				$valid = $false
 				Write-ColorOutput -ForegroundColor red -MessageData "You do not have permission to access this menu!"
+				Start-Sleep -s 3
+				Clear-Host
+				mainMenu
 			} elseif ($isAdmin) {
 				$valid = $true
 				Write-Information ""
 				Write-ColorOutput -ForegroundColor red -MessageData "Not setup yet!"
+				Start-Sleep -s 3
+				Clear-Host
 				mainMenu
 				#manageIssues
 			}
 		} elseif ($ans -eq 3) {
 			$valid = $true
+			Clear-Host
 			mainMenu
 		}
 	} while (-Not($valid))
@@ -609,12 +624,16 @@ function playbackMenu() {
 				$valid = $false
 				Write-Information ""
 				Write-ColorOutput -ForegroundColor red -MessageData "You do not have permission to access this menu!"
+				Start-Sleep -s 3
+				Clear-Host
+				mainMenu
 			} elseif ($isAdmin) {
 				$valid = $true
 				nowPlaying
 			}
 		} elseif ($ans -eq 3) {
 			$valid = $true
+			Clear-Host
 			mainMenu
 		}
 	} while (-Not($valid))
@@ -649,19 +668,26 @@ function searchMenu() {
 			$valid = $true
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor red -MessageData "Not setup yet!"
-			searchMenu
+			Start-Sleep -s 3
+			Clear-Host
+			mainMenu
 		} elseif ($ans -eq 2) {
 			$valid = $true
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor red -MessageData "Not setup yet!"
-			searchMenu
+			Start-Sleep -s 3
+			Clear-Host
+			mainMenu
 		} elseif ($ans -eq 3) {
 			$valid = $true
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor red -MessageData "Not setup yet!"
-			searchMenu
+			Start-Sleep -s 3
+			Clear-Host
+			mainMenu
 		}elseif ($ans -eq 4) {
 			$valid = $true
+			Clear-Host
 			mainMenu
 		}
 	} while (-Not($valid))
@@ -681,8 +707,10 @@ function exitMenu() {
 			$valid = $false
 		} elseif (($ans -like "n") -Or ($ans -like "no")) {
 			$valid = $true
+			Clear-Host
 			mainMenu
 		} else {
+			Clear-Host
 			Exit
 		}
 	} while (-Not ($valid))
@@ -703,6 +731,7 @@ function resetAll() {
 		} elseif (($answ -like "y") -Or ($answ -like "yes")) {
 			$valid = $true
 			Remove-Item $userDataPath
+			Clear-Host
 			Exit
 		} elseif (($answ -like "n") -Or ($answ -like "no")) {
 			$valid = $true
@@ -914,15 +943,21 @@ function setupTautulli() {
 			Write-ColorOutput -ForegroundColor green $str
 			$setupChecks.tautulli = $true
 			Write-Information ""
-			Write-ColorOutput -ForegroundColor gray -MessageData "Returning you to the Main Menu..."
+			Write-ColorOutput -ForegroundColor gray -MessageData "Returning you to the Endpoint Configuration Menu..."
 			Start-Sleep -s 3
+			Clear-Host
+			endpointMenu
 		}  elseif ($response.message -ne "success") {
 			Write-ColorOutput -ForegroundColor red -MessageData "Config push failed! Please try again later."
 			Start-Sleep -s 3
+			Clear-Host
+			endpointMenu
 		}
 	} elseif ($response.message -ne "success") {
 		Write-ColorOutput -ForegroundColor red -MessageData "Hmm, something weird happened. Please try again."
 		Start-Sleep -s 3
+		Clear-Host
+		endpointMenu
 	}
 	mainMenu
 }
@@ -998,7 +1033,7 @@ function setupArr($ans) {
 		$exURL = "http://127.0.0.1:8989/sonarr/"
 	} elseif ($ans -eq 12) {
 		$endpoint = "sonarr4k"
-		$arr = "Sonarr"
+		$arr = "Sonarr 4K"
 		$exURL = "http://127.0.0.1:8989/sonarr/"
 	} elseif ($ans -eq 21) {
 		$endpoint = "radarr"
@@ -1006,11 +1041,11 @@ function setupArr($ans) {
 		$exURL = "http://127.0.0.1:7878/radarr/"
 	} elseif ($ans -eq 22) {
 		$endpoint = "radarr4k"
-		$arr = "Radarr"
+		$arr = "Radarr 4K"
 		$exURL = "http://127.0.0.1:7878/radarr/"
 	} elseif ($ans -eq 23) {
 		$endpoint = "radarr3d"
-		$arr = "Radarr"
+		$arr = "Radarr 3D"
 		$exURL = "http://127.0.0.1:7878/radarr/"
 	}
 	if ($setupChecks.Item($endpoint) -eq $true) {
@@ -1051,7 +1086,7 @@ function setupArr($ans) {
 		} catch {
 			Write-Debug $_.Exception
 		}
-		if ($title -like "*$arr*") {
+		if ($title -like "*$($arr.Substring(0,6))*") {
 			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
 			$valid = $true
 		} else {
@@ -1152,16 +1187,21 @@ function setupArr($ans) {
 			Write-ColorOutput -ForegroundColor green -MessageData "MediaButler with the $($userData.serverName) Plex server."
 			$setupChecks.($endpoint)= $true
 			Write-Information ""
-			Write-ColorOutput -ForegroundColor gray -MessageData "Returning you to the Main Menu..."
+			Write-ColorOutput -ForegroundColor gray -MessageData "Returning you to the Endpoint Configuration Menu..."
 			Start-Sleep -s 3
-			mainMenu
+			Clear-Host
+			endpointMenu
 		}  elseif ($response.message -ne "success") {
 			Write-ColorOutput -ForegroundColor red -MessageData "Config push failed! Please try again later."
 			Start-Sleep -s 3
+			Clear-Host
+			endpointMenu
 		}
 	} elseif ($response.message -ne "success") {
 		Write-ColorOutput -ForegroundColor red -MessageData "Hmm, something weird happened. Please try again."
 		Start-Sleep -s 3
+		Clear-Host
+		endpointMenu
 	}
 	if (($ans -gt 10) -And ($ans -lt 20)) {
 		sonarrMenu
@@ -1203,6 +1243,7 @@ function submitRequest() {
 			resultsMenu
 		} elseif ($ans -eq 4) {
 			$valid = $true
+			Clear-Host
 			mainMenu
 		}
 	} while (-Not($valid))
