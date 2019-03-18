@@ -1730,7 +1730,6 @@ function main () {
 	checkPlexAuth
 	chooseServer
 	getMbURL
-	Write-Information $userData.mbURL
 	checkAdmin
 	if ($isAdmin) {
 		setupChecks
