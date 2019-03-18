@@ -2,6 +2,16 @@
 # Script to setup/configure MediaButler
 # HalianElf
 using namespace System.Management.Automation
+[CmdletBinding()]
+param(
+	[parameter (
+		   Mandatory=$false
+		 , position=0
+		 , HelpMessage="Enable debug output"
+		)
+	]
+	[Switch]$DebugOn = $false
+)
 
 # Define variables
 $InformationPreference = 'Continue'
@@ -22,6 +32,10 @@ $setupChecks = @{
 }
 $isAdmin = $false
 Clear-Host
+
+if ($DebugOn) {
+	$DebugPreference = 'Continue'
+}
 
 # Function to change the color output of text
 # https://blog.kieranties.com/2018/03/26/write-information-with-colours
@@ -330,7 +344,8 @@ function setupChecks() {
 			$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 		} catch {
-			Write-Debug $_.Exception
+			Write-Debug "Checking to see if $endpoint is set up"
+			Write-Debug $_.Exception.Message
 		}
 		if (-Not [string]::IsNullOrEmpty($response.settings)) {
 			$setupChecks.($endpoint) = $true
@@ -353,7 +368,8 @@ function checkAdmin() {
 			$script:isAdmin = $true
 		}
 	} catch {
-		Write-Debug $_.Exception
+		Write-Debug "Checking if logged in user is Admin"
+		Write-Debug $_.Exception.Message
 	}
 }
 
@@ -871,7 +887,7 @@ function setupTautulli() {
 			$response = Invoke-WebRequest -Uri $formattedURL -TimeoutSec 10 -UseBasicParsing
 			[String]$title = $response -split "`n" | Select-String -Pattern '<title>'
 		} catch {
-			Write-Debug $_.Exception
+			Write-Debug $_.Exception.Message
 		}
 		if ($title -like "*Tautulli*") {
 			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
@@ -895,7 +911,7 @@ function setupTautulli() {
 			$response = Invoke-WebRequest -Uri $tauURL"api/v2?apikey="$tauAPI"&cmd=arnold" -TimeoutSec 10 -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 		} catch {
-			Write-Debug $_.Exception.Response
+			Write-Debug $_.Exception.Message
 		}
 		if ($null -eq $response.response.message) {
 			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
@@ -926,7 +942,7 @@ function setupTautulli() {
 		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 	} catch {
-		Write-Debug $_.Exception.Response
+		Write-Debug $_.Exception.Message
 	}
 	if ($response.message -eq "success") {
 		Write-ColorOutput -ForegroundColor green -MessageData "Success!"
@@ -936,7 +952,7 @@ function setupTautulli() {
 			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -TimeoutSec 10 -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 		} catch {
-			Write-Debug $_.Exception.Response
+			Write-Debug $_.Exception.Message
 		}
 		if ($response.message -eq "success") {
 			Write-ColorOutput -ForegroundColor green -MessageData "Done! Tautulli has been successfully configured for"
@@ -1085,7 +1101,7 @@ function setupArr($ans) {
 			$response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10 -MaximumRedirection 0
 			[String]$title = $response -split "`n" | Select-String -Pattern '<title>'
 		} catch {
-			Write-Debug $_.Exception
+			Write-Debug $_.Exception.Message
 		}
 		if ($title -like "*$($arr.Substring(0,6))*") {
 			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
@@ -1134,7 +1150,7 @@ function setupArr($ans) {
 		$response = $response | ConvertFrom-Json
 		$arrProfile = arrProfiles $response
 	} catch {
-		Write-Debug $_.Exception
+		Write-Debug $_.Exception.Message
 	}
 
 	# Default Root Directory
@@ -1146,7 +1162,7 @@ function setupArr($ans) {
 		$response = $response | ConvertFrom-Json
 		$rootDir = arrRootDir $response
 	} catch {
-		Write-Debug $_.Exception
+		Write-Debug $_.Exception.Message
 	}
 
 	# Set MediaButler formatting
@@ -1171,7 +1187,7 @@ function setupArr($ans) {
 		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 	} catch {
-		Write-Debug $_.Exception
+		Write-Debug $_.Exception.Message
 	}
 	if ($response.message -eq "success") {
 		Write-ColorOutput -ForegroundColor green -MessageData "Success!"
@@ -1181,7 +1197,7 @@ function setupArr($ans) {
 			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -TimeoutSec 10 -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 		} catch {
-			Write-Debug $_.Exception
+			Write-Debug $_.Exception.Message
 		}
 		if ($response.message -eq "success") {
 			Write-ColorOutput -ForegroundColor green -MessageData "Done! $arr has been successfully configured for"
@@ -1309,7 +1325,7 @@ function submitRequest() {
 			}
 		} while (-Not($valid))
 	} catch {
-		Write-Debug $_.Exception
+		Write-Debug $_.Exception.Message
 	}
 	Write-Information ""
 	Write-ColorOutput -ForegroundColor gray -MessageData "Submitting your request..."
@@ -1373,7 +1389,7 @@ function manageRequests() {
 		$resultInfo = @{"title"="Cancel"; "id"="Cancel";};
 		$menu.Add($i,($resultInfo))
 	} catch {
-		Write-Debug $_.Exception
+		Write-Debug $_.Exception.Message
 	}
 	do {
 		Write-Information ""
@@ -1445,7 +1461,7 @@ function manageRequests() {
 				Write-ColorOutput -ForegroundColor gray -MessageData "Returning you to the Requests Menu..."
 				Start-Sleep -s 3
 			} catch {
-				Write-Debug $_.Exception
+				Write-Debug $_.Exception.Message
 			}
 			requestsMenu
 		} elseif ($ans -eq 2) {
@@ -1459,7 +1475,7 @@ function manageRequests() {
 				Write-ColorOutput -ForegroundColor gray -MessageData "Returning you to the Requests Menu..."
 				Start-Sleep -s 3
 			} catch {
-				Write-Debug $_.Exception
+				Write-Debug $_.Exception.Message
 			}
 			requestsMenu
 		} elseif ($ans -eq 3) {
@@ -1507,7 +1523,7 @@ function manageRequests() {
 			requestsMenu
 		}
 	} catch {
-		Write-Debug $_.Exception
+		Write-Debug $_.Exception.Message
 	}
 	Write-Information ""
 	Write-Information "Sending your issue to the server..."
@@ -1565,7 +1581,7 @@ function manageIssues() {
 			$menu.Add($i,($requestInfo))
 		}
 	} catch {
-		Write-Debug $_.Exception
+		Write-Debug $_.Exception.Message
 	}
 	Write-Information ""
 	Write-Information "Which request would you like to manage?"
@@ -1612,7 +1628,7 @@ function manageIssues() {
 					Start-Sleep -s 3
 					requestsMenu
 				} catch {
-					Write-Debug $_.Exception
+					Write-Debug $_.Exception.Message
 				}
 				requestsMenu
 			} else {
@@ -1676,7 +1692,7 @@ function playbackHistory() {
 			Write-ColorOutput -ForegroundColor yellow -MessageData "There is no playback history at this time."
 		}
 	} catch {
-		Write-Debug $_.Exception
+		Write-Debug $_.Exception.Message
 	}
 	playbackMenu
 }
