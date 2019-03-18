@@ -143,7 +143,7 @@ function plexLogin() {
 			$body = $body | ConvertTo-Json
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor gray -MessageData "Now we're going to make sure you provided valid credentials..."
-			$response = Invoke-WebRequest -Uri $plexLoginURL -Method POST -Headers $headers -Body $body -ContentType "application/json" -UseBasicParsing
+			$response = Invoke-WebRequest -Uri $plexLoginURL -Method POST -Headers $headers -Body $body -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 			$authToken = $response.user.authToken
 			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
@@ -171,7 +171,7 @@ function mbLogin($authToken) {
 			"authToken"=$authToken;
 		};
 		$body = $body | ConvertTo-Json
-		$response = Invoke-WebRequest -Uri $mbLoginURL -Method POST -Headers $headers -Body $body -ContentType "application/json" -UseBasicParsing
+		$response = Invoke-WebRequest -Uri $mbLoginURL -Method POST -Headers $headers -Body $body -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
 
 		# Convert to Array so it can be used
 		$response = $response | ConvertFrom-Json
@@ -263,7 +263,7 @@ function getMbURL() {
 				"machineId"=$userData.machineId;
 			};
 			$body = $body | ConvertTo-Json
-			$mbURL = Invoke-WebRequest -Uri $mbDiscoverURL -Method POST -Headers $headers -Body $body -ContentType "application/json"  -UseBasicParsing
+			$mbURL = Invoke-WebRequest -Uri $mbDiscoverURL -Method POST -Headers $headers -Body $body -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
 			Write-ColorOutput -ForegroundColor green -MessageData "Done!"
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor gray -MessageData "Is this the correct MediaButler URL?"
@@ -327,7 +327,7 @@ function setupChecks() {
 		};
 		$formattedURL = [System.String]::Concat(($userData.mbURL), 'configure/', ($endpoint))
 		try {
-			$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -UseBasicParsing
+			$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 		} catch {
 			Write-Debug $_.Exception
@@ -347,7 +347,7 @@ function checkAdmin() {
 	};
 	$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/@me/')
 	try {
-		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -UseBasicParsing
+		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 		if ($response.permissions -contains "ADMIN") {
 			$script:isAdmin = $true
@@ -868,7 +868,7 @@ function setupTautulli() {
 		Write-ColorOutput -ForegroundColor gray -MessageData "Checking that the provided Tautulli URL is valid..."
 		try {
 			$formattedURL = [System.String]::Concat(($tauURL), 'auth/login')
-			$response = Invoke-WebRequest -Uri $formattedURL -UseBasicParsing
+			$response = Invoke-WebRequest -Uri $formattedURL -TimeoutSec 10 -UseBasicParsing
 			[String]$title = $response -split "`n" | Select-String -Pattern '<title>'
 		} catch {
 			Write-Debug $_.Exception
@@ -892,7 +892,7 @@ function setupTautulli() {
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -MessageData "Testing that the provided Tautulli API Key is valid..."
 		try {
-			$response = Invoke-WebRequest -Uri $tauURL"api/v2?apikey="$tauAPI"&cmd=arnold" -UseBasicParsing
+			$response = Invoke-WebRequest -Uri $tauURL"api/v2?apikey="$tauAPI"&cmd=arnold" -TimeoutSec 10 -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 		} catch {
 			Write-Debug $_.Exception.Response
@@ -923,7 +923,7 @@ function setupTautulli() {
 	Write-Information ""
 	Write-ColorOutput -ForegroundColor gray -MessageData "Testing the full Tautulli config for MediaButler..."
 	try {
-		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -UseBasicParsing
+		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 	} catch {
 		Write-Debug $_.Exception.Response
@@ -933,7 +933,7 @@ function setupTautulli() {
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -MessageData "Saving the Tautulli config to MediaButler..."
 		try {
-			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -UseBasicParsing
+			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -TimeoutSec 10 -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 		} catch {
 			Write-Debug $_.Exception.Response
@@ -1082,7 +1082,7 @@ function setupArr($ans) {
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -MessageData "Checking that the provided $arr URL is valid..."
 		try {
-			$response = Invoke-WebRequest -Uri $url -UseBasicParsing -MaximumRedirection 0
+			$response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10 -MaximumRedirection 0
 			[String]$title = $response -split "`n" | Select-String -Pattern '<title>'
 		} catch {
 			Write-Debug $_.Exception
@@ -1111,7 +1111,7 @@ function setupArr($ans) {
 				"X-Api-Key"=$apiKey
 			};
 			$formattedURL = [System.String]::Concat(($url), 'api/system/status')
-			$response = Invoke-WebRequest -Uri $formattedURL -Headers $headers -UseBasicParsing
+			$response = Invoke-WebRequest -Uri $formattedURL -Headers $headers -TimeoutSec 10 -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 		} catch {
 			$err = $_.Exception.Response.StatusCode
@@ -1130,7 +1130,7 @@ function setupArr($ans) {
 		$headers = @{
 			"X-Api-Key"=$apiKey
 		};
-		$response = Invoke-WebRequest -Uri $url"api/profile" -Headers $headers -UseBasicParsing
+		$response = Invoke-WebRequest -Uri $url"api/profile" -Headers $headers -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 		$arrProfile = arrProfiles $response
 	} catch {
@@ -1142,7 +1142,7 @@ function setupArr($ans) {
 		$headers = @{
 			"X-Api-Key"=$apiKey
 		};
-		$response = Invoke-WebRequest -Uri $url"api/rootfolder" -Headers $headers -UseBasicParsing
+		$response = Invoke-WebRequest -Uri $url"api/rootfolder" -Headers $headers -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 		$rootDir = arrRootDir $response
 	} catch {
@@ -1168,7 +1168,7 @@ function setupArr($ans) {
 	Write-Information ""
 	Write-ColorOutput -ForegroundColor gray -MessageData "Testing the full $arr config for MediaButler..."
 	try {
-		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -UseBasicParsing
+		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 	} catch {
 		Write-Debug $_.Exception
@@ -1178,7 +1178,7 @@ function setupArr($ans) {
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -MessageData "Saving the $arr config to MediaButler..."
 		try {
-			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -UseBasicParsing
+			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -TimeoutSec 10 -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 		} catch {
 			Write-Debug $_.Exception
@@ -1264,7 +1264,7 @@ function submitRequest() {
 	};
 	$formattedURL = [System.String]::Concat(($userData.mbURL), ($type), "?query=", $ans)
 	try {
-		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -UseBasicParsing
+		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -MessageData "Here are your results:"
@@ -1330,7 +1330,7 @@ function submitRequest() {
 		}
 		$body = $body | ConvertTo-Json
 		$formattedURL = [System.String]::Concat(($userData.mbURL), "requests")
-		$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -ContentType "application/json"  -UseBasicParsing
+		$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
 		Write-ColorOutput -ForegroundColor green -MessageData "Success! $title has been requested."
 	} catch {
 		Write-Debug $_.ErrorDetails.Message
@@ -1360,7 +1360,7 @@ function manageRequests() {
 	$menu = @{}
 	$i = 0
 	try {
-		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -ContentType "application/json"  -UseBasicParsing
+		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 		foreach ($request in $response) {
 			$i++
@@ -1438,7 +1438,7 @@ function manageRequests() {
 			$valid = $true
 			$formattedURL = [System.String]::Concat(($userData.mbURL), "requests/", ($id))
 			try {
-				$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -ContentType "application/json"  -UseBasicParsing
+				$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
 				$response = $response | ConvertFrom-Json
 				Write-ColorOutput -ForegroundColor green -MessageData "Success! The request for $title has been approved."
 				Write-Information ""
@@ -1452,7 +1452,7 @@ function manageRequests() {
 			$valid = $true
 			$formattedURL = [System.String]::Concat(($userData.mbURL), "requests/", ($id))
 			try {
-				$response = Invoke-WebRequest -Uri $formattedURL -Method DEL -Headers $headers -ContentType "application/json"  -UseBasicParsing
+				$response = Invoke-WebRequest -Uri $formattedURL -Method DEL -Headers $headers -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
 				$response = $response | ConvertFrom-Json
 				Write-ColorOutput -ForegroundColor green -MessageData "Requset has been sucessfully removed!"
 				Write-Information ""
@@ -1483,7 +1483,7 @@ function manageRequests() {
 	};
 	$formattedURL = [System.String]::Concat(($userData.mbURL), "/issue")
 	try {
-		$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -UseBasicParsing
+		$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 		Write-Information ""
 		Write-Information "Here are your results:"
@@ -1527,7 +1527,7 @@ function manageRequests() {
 		}
 		$body = $body | ConvertTo-Json
 		$formattedURL = [System.String]::Concat(($userData.mbURL), "requests")
-		$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -ContentType "application/json"  -UseBasicParsing
+		$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
 		Write-ColorOutput -ForegroundColor green -MessageData "Success! $title has been requested."
 	} catch {
 		Write-Debug $_.ErrorDetails.Message
@@ -1556,7 +1556,7 @@ function manageIssues() {
 	$menu = @{}
 	$i = 0
 	try {
-		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -ContentType "application/json"  -UseBasicParsing
+		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 		foreach ($issue in $response) {
 			$i++
@@ -1604,7 +1604,7 @@ function manageIssues() {
 				$valid = $true
 				$formattedURL = [System.String]::Concat(($userData.mbURL), "issues/", ($id))
 				try {
-					$response = Invoke-WebRequest -Uri $formattedURL -Method DEL -Headers $headers -ContentType "application/json"  -UseBasicParsing
+					$response = Invoke-WebRequest -Uri $formattedURL -Method DEL -Headers $headers -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
 					$response = $response | ConvertFrom-Json
 					Write-ColorOutput -ForegroundColor green -nonewline -MessageData "Success! The request for $title has been deleted."
 					Write-Information ""
@@ -1635,7 +1635,7 @@ function playbackHistory() {
 	};
 	$formattedURL = [System.String]::Concat(($userData.mbURL), "tautulli/history")
 	try {
-		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -UseBasicParsing
+		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor blue -MessageData "============================================================"
@@ -1690,7 +1690,7 @@ function nowPlaying() {
 	};
 	$formattedURL = [System.String]::Concat(($userData.mbURL), "tautulli/activity")
 	try {
-		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -UseBasicParsing
+		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
 		if (-Not [string]::IsNullOrEmpty($response.data.sessions)) {
 			foreach ($session in $response.data.sessions) {
