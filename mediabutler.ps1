@@ -194,17 +194,17 @@ function chooseServer() {
 		Write-Information ""
 		$menu = @{}
 		foreach ($server in $mbLoginResponse.servers) {
-			try {
-				$owner = [System.Convert]::ToBoolean($server.owner)
-			} catch [FormatException] {
-				$owner = $false
-			}
-			if ($owner) {
+			#try {
+			#	$owner = [System.Convert]::ToBoolean($server.owner)
+			#} catch [FormatException] {
+			#	$owner = $false
+			#}
+			#if ($owner) {
 				$i++
 				Write-ColorOutput -nonewline -MessageData "$i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($server.name)"
 				$serverInfo = @{"serverName"="$($server.name)"; "machineId"="$($server.machineId)"; "mbToken"="$($server.token)";};
 				$menu.Add($i,($serverInfo))
-			}
+			#}
 		}
 		Write-Information ""
 		do {
@@ -279,6 +279,7 @@ function getMbURL() {
 				} elseif (($ans -like "y") -Or ($ans -like "yes")) {
 					$valid = $true
 				} else {
+					$valid = $true
 					$manual = $true
 					throw "Not correct URL"
 				}
@@ -302,8 +303,8 @@ function getMbURL() {
 					Write-ColorOutput -ForegroundColor red -MessageData "Invalid Server URL"
 				}
 			} while(-Not ($isMB));
-			$userData.mbURL = $mbURL
 		}
+		$userData.mbURL = [String]$mbURL
 		$userData | ConvertTo-Json | Out-File -FilePath $userDataPath
 	}
 }
@@ -1729,6 +1730,7 @@ function main () {
 	checkPlexAuth
 	chooseServer
 	getMbURL
+	Write-Information $userData.mbURL
 	checkAdmin
 	if ($isAdmin) {
 		setupChecks
