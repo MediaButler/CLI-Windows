@@ -1,0 +1,36 @@
+variables:
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_DRIVER: overlay2
+stages:
+  - build
+  - test
+  - deploy
+services:
+  - docker:dind
+build_docker:
+  image: docker:stable
+  stage: build
+  before_script:
+  - docker info
+  script:
+    - docker build -t mediabutler/cli-windows:${CI_COMMIT_REF_NAME} .
+test_docker:
+  stage: test
+  script:
+    - echo "Should have tested Docker"
+deploy_docker_int:
+  stage: deploy
+  before_script:
+    - docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN reg.lab.mediabutler.io
+  script:
+    - docker build -t reg.lab.mediabutler.io/mediabutler/windows-cli-utility:${CI_COMMIT_REF_NAME} .
+    - docker push reg.lab.mediabutler.io/mediabutler/windows-cli-utility:${CI_COMMIT_REF_NAME}
+deploy_docker_ext:
+  stage: deploy
+  before_script:
+    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io
+  script:
+    - docker build -t mediabutler/cli-windows:latest .
+    - docker push mediabutler/cli-windows:latest
+  only: 
+    - master

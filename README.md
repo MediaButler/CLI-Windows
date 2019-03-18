@@ -57,6 +57,12 @@ Running can be done by opening a PowerShell prompt and running the following:
     cd C:\path\to\CLI-Windows
     .\mediabutler.ps1
 
+### Docker
+
+You can also run the client inside a docker envrionment by running
+
+    docker run -it mediabutler/cli-windows
+
 ## Support
 
 Further help and support using this script can be found in [our Wiki](https://github.com/MediaButler/Wiki/wiki) or drop by our [Discord Server](https://discord.gg/nH9t5sm)
