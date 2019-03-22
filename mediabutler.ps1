@@ -668,7 +668,8 @@ function searchMenu() {
 		Write-ColorOutput -nonewline -MessageData "1) "; Write-ColorOutput -ForegroundColor gray -MessageData "TV Show"
 		Write-ColorOutput -nonewline -MessageData "2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Movie"
 		Write-ColorOutput -nonewline -MessageData "3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Music"
-		Write-ColorOutput -nonewline -MessageData "4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
+		Write-ColorOutput -nonewline -MessageData "4) "; Write-ColorOutput -ForegroundColor gray -MessageData "All"
+		Write-ColorOutput -nonewline -MessageData "5) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
 		$ans = Read-Host
@@ -677,7 +678,7 @@ function searchMenu() {
 		} catch {
 			[int]$ans = 0
 		}
-		if (-Not(($ans -ge 1) -And ($ans -le 4))) {
+		if (-Not(($ans -ge 1) -And ($ans -le 5))) {
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 			$valid = $false
@@ -697,12 +698,16 @@ function searchMenu() {
 			mainMenu
 		} elseif ($ans -eq 3) {
 			$valid = $true
-			Write-Information ""
-			Write-ColorOutput -ForegroundColor red -MessageData "Not setup yet!"
-			Start-Sleep -s 3
-			Clear-Host
-			mainMenu
-		}elseif ($ans -eq 4) {
+			#Write-Information ""
+			#Write-ColorOutput -ForegroundColor red -MessageData "Not setup yet!"
+			#Start-Sleep -s 3
+			#Clear-Host
+			#mainMenu
+			searchAudio
+		} elseif ($ans -eq 4) {
+			$valid = $true
+			searchAll
+		} elseif ($ans -eq 5) {
 			$valid = $true
 			Clear-Host
 			mainMenu
@@ -1708,7 +1713,7 @@ function nowPlaying() {
 	try {
 		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
-		if (-Not [string]::IsNullOrEmpty($response.data.sessions)) {
+		if ($response.data.sessions.count -gt 0) {
 			foreach ($session in $response.data.sessions) {
 				if ($session.media_type -eq "episode") {
 					$title = "$($session.grandparent_title) - S$($session.parent_media_index.PadLeft(2,'0'))E$($session.media_index.PadLeft(2,'0')) - $($session.title)"
@@ -1736,9 +1741,90 @@ function nowPlaying() {
 			Write-ColorOutput -ForegroundColor yellow -MessageData "There are no active streams at this time."
 		}
 	} catch {
-		Write-Information $_.Exception
+		Write-Debug $_.Exception.Message
 	}
 	playbackMenu
+}
+
+function searchAudio() {
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	Write-Information ""
+	Write-ColorOutput -ForegroundColor gray -MessageData "What would you like to search for?"
+	$ans = Read-Host
+	try {
+		$formattedUrl = [System.String]::Concat(($userData.mbURL), 'plex/search/audio/?query=', ($ans))
+		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
+		$response
+	} catch {
+		Write-Debug $_.Exception.Message
+	}
+}
+
+function searchAll() {
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	Write-Information ""
+	Write-ColorOutput -ForegroundColor gray -MessageData "What would you like to search for?"
+	$ans = Read-Host
+	try {
+		$formattedUrl = [System.String]::Concat(($userData.mbURL), 'plex/search/?query=', ($ans))
+		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
+		#Write-Information $response
+		$response = $response | ConvertFrom-Json
+		if ([int]$response.size -gt 0) {
+			foreach ($category in $response.Hub) {
+				if (($category.type -eq "episode") -And ([int]$category.size -gt 0)) {
+					Write-Information ""
+					Write-Information "Episodes"
+					foreach ($result in $category.Metadata) {
+						$season = [string]$result.parentIndex
+						$episode = [string]$result.index
+						Write-ColorOutput -ForegroundColor gray -MessageData "$($result.grandparentTitle) - $($result.title) - S$($season.PadLeft(2,'0'))E$($episode.PadLeft(2,'0'))"
+					}
+				} elseif (($category.type -eq "show") -And ([int]$category.size -gt 0)) {
+					Write-Information ""
+					Write-Information "Shows"
+					foreach ($result in $category.Metadata) {
+						Write-ColorOutput -ForegroundColor gray -MessageData "$($result.title) ($($result.year))"
+					}
+				} elseif (($category.type -eq "artist") -And ([int]$category.size -gt 0)) {
+					Write-Information ""
+					Write-Information "Shows"
+					foreach ($result in $category.Metadata) {
+						Write-ColorOutput -ForegroundColor gray -MessageData "$($result.title)"
+					}
+				} elseif (($category.type -eq "album") -And ([int]$category.size -gt 0)) {
+					Write-Information ""
+					Write-Information "Albums"
+					foreach ($result in $category.Metadata) {
+						Write-ColorOutput -ForegroundColor gray -MessageData "$($result.grandparentTitle) - $($result.title)"
+					}
+				} elseif (($category.type -eq "movie") -And ([int]$category.size -gt 0)) {
+					Write-Information ""
+					Write-Information "Movies"
+					foreach ($result in $category.Metadata) {
+						Write-ColorOutput -ForegroundColor gray -MessageData "$($result.title) ($($result.year))"
+					}
+				} elseif (($category.type -eq "track") -And ([int]$category.size -gt 0)) {
+					Write-Information ""
+					Write-Information "Tracks"
+					foreach ($result in $category.Metadata) {
+						Write-ColorOutput -ForegroundColor gray -MessageData "$($result.grandparentTitle) - $($result.title) [$($result.parentTitle)]"
+					}
+				}
+			}
+		}
+	} catch {
+		Write-Debug $_.Exception.Message
+	}
+	searchMenu
 }
 
 function main () {
