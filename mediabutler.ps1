@@ -16,6 +16,7 @@ param(
 # Define variables
 $InformationPreference = 'Continue'
 $Host.UI.RawUI.BackgroundColor = 'Black'
+[Net.ServicePointManager]::SecurityProtocol = "Tls12, Tls11, Tls, Ssl3"
 $uuid = "fb67fb8b-9000-4a70-a67b-2f2b626780bb"
 $userDataPath = '.\userData.json'
 $plexLoginURL = "https://plex.tv/users/sign_in.json"
