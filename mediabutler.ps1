@@ -284,7 +284,7 @@ function getMbURL() {
 			Write-ColorOutput -ForegroundColor gray -MessageData "Is this the correct MediaButler URL?"
 			Write-ColorOutput -ForegroundColor yellow -MessageData $mbURL
 			Write-Information ""
-			Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -MessageData "o";
+			Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -ForegroundColor gray -MessageData "o";
 			$valid = $false
 			do {
 				$ans = Read-Host
@@ -372,7 +372,7 @@ function checkAdmin() {
 	} catch {
 		Write-Debug "Checking if logged in user is Admin"
 		Write-Debug $_.Exception.Message
-		if ($_.Exception.Message -like "*Could not create SSL/TLS secure channel*") {
+		if ($_.Exception.Message -like "*Invalid JSON primitive*") {
 			Write-ColorOutput -ForegroundColor red -MessageData "There was an issue checking your permissions for the selected Plex Server!"
 			Write-ColorOutput -ForegroundColor yellow -MessageData "Please make sure your MediaButler API is functioning properly and try again."
 			Exit
@@ -872,7 +872,7 @@ function setupTautulli() {
 		do {
 			Write-ColorOutput -ForegroundColor red -MessageData "Tautulli appears to be setup already!"
 			Write-ColorOutput -ForegroundColor yellow -MessageData "Do you wish to continue?"
-			Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -MessageData "o";
+			Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -ForegroundColor gray -MessageData "o";
 			$answ = Read-Host
 			if (($answ -notlike "y") -And ($answ -notlike "yes") -And ($answ -notlike "n") -And ($answ -notlike "no")) {
 				Write-ColorOutput -ForegroundColor red -MessageData "Please specify yes, y, no, or n."
@@ -1083,7 +1083,7 @@ function setupArr($ans) {
 		do {
 			Write-ColorOutput -ForegroundColor red -MessageData "$arr appears to be setup already!"
 			Write-ColorOutput -ForegroundColor yellow -MessageData "Do you wish to continue?"
-			Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -MessageData "o";
+			Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -ForegroundColor gray -MessageData "o";
 			$answ = Read-Host
 			if (($answ -notlike "y") -And ($answ -notlike "yes") -And ($answ -notlike "n") -And ($answ -notlike "no")) {
 				Write-ColorOutput -ForegroundColor red -MessageData "Please specify yes, y, no, or n."
@@ -1623,7 +1623,7 @@ function manageIssues() {
 		Write-Information ""
 		Write-Information "Are you sure you want to delete this request?"
 		Write-Information ""
-		Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -MessageData "o";
+		Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -ForegroundColor gray -MessageData "o";
 		$valid = $false
 		do {
 			$answ = Read-Host
@@ -1850,7 +1850,7 @@ function searchAll($ans) {
 					Write-ColorOutput -ForegroundColor magenta -MessageData "Albums:"
 					if ([int]$category.size -gt 0) {
 						foreach ($result in $category.Metadata) {
-							Write-ColorOutput -ForegroundColor gray -MessageData "$($result.grandparentTitle) - $($result.title)"
+							Write-ColorOutput -ForegroundColor gray -MessageData "$($result.parentTitle) - $($result.title)"
 						}
 					} else {
 						Write-ColorOutput -ForegroundColor yellow -MessageData "No results at this time."
@@ -1861,7 +1861,7 @@ function searchAll($ans) {
 					Write-ColorOutput -ForegroundColor magenta -MessageData "Songs:"
 					if ([int]$category.size -gt 0) {
 						foreach ($result in $category.Metadata) {
-							Write-ColorOutput -ForegroundColor gray -MessageData "$($result.grandparentTitle) - $($result.title) [$($result.parentTitle)]"
+							Write-ColorOutput -ForegroundColor gray -MessageData "$($result.grandparentTitle) - $($result.parentTitle) - $($result.title)"
 						}
 					} else {
 						Write-ColorOutput -ForegroundColor yellow -MessageData "No results at this time."
