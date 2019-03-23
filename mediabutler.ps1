@@ -334,6 +334,7 @@ function setupChecks() {
 			4 { $endpoint = "radarr3d"; break }
 			5 { $endpoint = "tautulli"; break }
 		}
+		Write-Debug "Checking to see if $endpoint is set up"
 		$headers = @{
 			"Content-Type"="application/json"
 			"MB-Client-Identifier"=$uuid;
@@ -344,9 +345,9 @@ function setupChecks() {
 			$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 		} catch {
-			Write-Debug "Checking to see if $endpoint is set up"
 			Write-Debug $_.Exception.Message
 		}
+		Write-Debug $response.settings
 		if (-Not [string]::IsNullOrEmpty($response.settings)) {
 			$setupChecks.($endpoint) = $true
 		}
@@ -370,6 +371,11 @@ function checkAdmin() {
 	} catch {
 		Write-Debug "Checking if logged in user is Admin"
 		Write-Debug $_.Exception.Message
+		if ($_.Exception.Message -like "*Could not create SSL/TLS secure channel*") {
+			Write-ColorOutput -ForegroundColor red -MessageData "There was an issue checking your permissions for the selected Plex Server!"
+			Write-ColorOutput -ForegroundColor yellow -MessageData "Please make sure your MediaButler API is functioning properly and try again."
+			Exit
+		}
 	}
 }
 
@@ -665,10 +671,10 @@ function searchMenu() {
 		Write-Information "*****************************************"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
 		Write-Information ""
-		Write-ColorOutput -nonewline -MessageData "1) "; Write-ColorOutput -ForegroundColor gray -MessageData "TV Show"
-		Write-ColorOutput -nonewline -MessageData "2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Movie"
+		Write-ColorOutput -nonewline -MessageData "1) "; Write-ColorOutput -ForegroundColor gray -MessageData "TV Shows"
+		Write-ColorOutput -nonewline -MessageData "2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Movies"
 		Write-ColorOutput -nonewline -MessageData "3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Music"
-		Write-ColorOutput -nonewline -MessageData "4) "; Write-ColorOutput -ForegroundColor gray -MessageData "All"
+		Write-ColorOutput -nonewline -MessageData "4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Everything"
 		Write-ColorOutput -nonewline -MessageData "5) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
@@ -684,18 +690,20 @@ function searchMenu() {
 			$valid = $false
 		} elseif ($ans -eq 1) {
 			$valid = $true
-			Write-Information ""
-			Write-ColorOutput -ForegroundColor red -MessageData "Not setup yet!"
-			Start-Sleep -s 3
-			Clear-Host
-			mainMenu
+			#Write-Information ""
+			#Write-ColorOutput -ForegroundColor red -MessageData "Not setup yet!"
+			#Start-Sleep -s 3
+			#Clear-Host
+			#mainMenu
+			searchAll($ans)
 		} elseif ($ans -eq 2) {
 			$valid = $true
-			Write-Information ""
-			Write-ColorOutput -ForegroundColor red -MessageData "Not setup yet!"
-			Start-Sleep -s 3
-			Clear-Host
-			mainMenu
+			#Write-Information ""
+			#Write-ColorOutput -ForegroundColor red -MessageData "Not setup yet!"
+			#Start-Sleep -s 3
+			#Clear-Host
+			#mainMenu
+			searchAll($ans)
 		} elseif ($ans -eq 3) {
 			$valid = $true
 			#Write-Information ""
@@ -703,10 +711,10 @@ function searchMenu() {
 			#Start-Sleep -s 3
 			#Clear-Host
 			#mainMenu
-			searchAudio
+			searchAll($ans)
 		} elseif ($ans -eq 4) {
 			$valid = $true
-			searchAll
+			searchAll($ans)
 		} elseif ($ans -eq 5) {
 			$valid = $true
 			Clear-Host
@@ -1764,7 +1772,16 @@ function searchAudio() {
 	}
 }
 
-function searchAll() {
+function searchAll($ans) {
+	if ($ans -eq 1) {
+		$search = "tv"
+	} elseif ($ans -eq 2) {
+		$search = "movie"
+	} elseif ($ans -eq 3) {
+		$search = "music"
+	} elseif ($ans -eq 4) {
+		$search = "all"
+	}
 	$headers = @{
 		"Content-Type"="application/json"
 		"MB-Client-Identifier"=$uuid;
@@ -1776,47 +1793,77 @@ function searchAll() {
 	try {
 		$formattedUrl = [System.String]::Concat(($userData.mbURL), 'plex/search/?query=', ($ans))
 		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
-		#Write-Information $response
+		Write-Debug $response
 		$response = $response | ConvertFrom-Json
 		if ([int]$response.size -gt 0) {
 			foreach ($category in $response.Hub) {
-				if (($category.type -eq "episode") -And ([int]$category.size -gt 0)) {
+				if (($category.type -eq "episode") -And (($search -eq "tv") -Or ($search -eq "all"))) {
 					Write-Information ""
-					Write-Information "Episodes"
-					foreach ($result in $category.Metadata) {
-						$season = [string]$result.parentIndex
-						$episode = [string]$result.index
-						Write-ColorOutput -ForegroundColor gray -MessageData "$($result.grandparentTitle) - $($result.title) - S$($season.PadLeft(2,'0'))E$($episode.PadLeft(2,'0'))"
+					Write-Information ""
+					Write-ColorOutput -ForegroundColor magenta -MessageData "TV Show episodes:"
+					if ([int]$category.size -gt 0) {
+						foreach ($result in $category.Metadata) {
+							$season = [string]$result.parentIndex
+							$episode = [string]$result.index
+							Write-ColorOutput -ForegroundColor gray -MessageData "$($result.grandparentTitle) - $($result.title) - S$($season.PadLeft(2,'0'))E$($episode.PadLeft(2,'0'))"
+						}
+					} else {
+						Write-ColorOutput -ForegroundColor yellow -MessageData "No results at this time."
 					}
-				} elseif (($category.type -eq "show") -And ([int]$category.size -gt 0)) {
+				} elseif (($category.type -eq "show") -And (($search -eq "tv") -Or ($search -eq "all"))) {
 					Write-Information ""
-					Write-Information "Shows"
-					foreach ($result in $category.Metadata) {
-						Write-ColorOutput -ForegroundColor gray -MessageData "$($result.title) ($($result.year))"
+					Write-Information ""
+					Write-ColorOutput -ForegroundColor magenta -MessageData "TV Shows:"
+					if ([int]$category.size -gt 0) {
+						foreach ($result in $category.Metadata) {
+							Write-ColorOutput -ForegroundColor gray -MessageData "$($result.title) ($($result.year))"
+						}
+					} else {
+						Write-ColorOutput -ForegroundColor yellow -MessageData "No results at this time."
 					}
-				} elseif (($category.type -eq "artist") -And ([int]$category.size -gt 0)) {
+				} elseif (($category.type -eq "movie") -And (($search -eq "movie") -Or ($search -eq "all"))) {
 					Write-Information ""
-					Write-Information "Shows"
-					foreach ($result in $category.Metadata) {
-						Write-ColorOutput -ForegroundColor gray -MessageData "$($result.title)"
+					Write-Information ""
+					Write-ColorOutput -ForegroundColor magenta -MessageData "Movies:"
+					if ([int]$category.size -gt 0) {
+						foreach ($result in $category.Metadata) {
+							Write-ColorOutput -ForegroundColor gray -MessageData "$($result.title) ($($result.year))"
+						}
+					} else {
+						Write-ColorOutput -ForegroundColor yellow -MessageData "No results at this time."
 					}
-				} elseif (($category.type -eq "album") -And ([int]$category.size -gt 0)) {
+				} elseif (($category.type -eq "artist") -And (($search -eq "music") -Or ($search -eq "all"))) {
 					Write-Information ""
-					Write-Information "Albums"
-					foreach ($result in $category.Metadata) {
-						Write-ColorOutput -ForegroundColor gray -MessageData "$($result.grandparentTitle) - $($result.title)"
+					Write-Information ""
+					Write-ColorOutput -ForegroundColor magenta -MessageData "Artists:"
+					if ([int]$category.size -gt 0) {
+						foreach ($result in $category.Metadata) {
+							Write-ColorOutput -ForegroundColor gray -MessageData "$($result.title)"
+						}
+					} else {
+						Write-ColorOutput -ForegroundColor yellow -MessageData "No results at this time."
 					}
-				} elseif (($category.type -eq "movie") -And ([int]$category.size -gt 0)) {
+				} elseif (($category.type -eq "album") -And (($search -eq "music") -Or ($search -eq "all"))) {
 					Write-Information ""
-					Write-Information "Movies"
-					foreach ($result in $category.Metadata) {
-						Write-ColorOutput -ForegroundColor gray -MessageData "$($result.title) ($($result.year))"
+					Write-Information ""
+					Write-ColorOutput -ForegroundColor magenta -MessageData "Albums:"
+					if ([int]$category.size -gt 0) {
+						foreach ($result in $category.Metadata) {
+							Write-ColorOutput -ForegroundColor gray -MessageData "$($result.grandparentTitle) - $($result.title)"
+						}
+					} else {
+						Write-ColorOutput -ForegroundColor yellow -MessageData "No results at this time."
 					}
-				} elseif (($category.type -eq "track") -And ([int]$category.size -gt 0)) {
+				} elseif (($category.type -eq "track") -And (($search -eq "music") -Or ($search -eq "all"))) {
 					Write-Information ""
-					Write-Information "Tracks"
-					foreach ($result in $category.Metadata) {
-						Write-ColorOutput -ForegroundColor gray -MessageData "$($result.grandparentTitle) - $($result.title) [$($result.parentTitle)]"
+					Write-Information ""
+					Write-ColorOutput -ForegroundColor magenta -MessageData "Songs:"
+					if ([int]$category.size -gt 0) {
+						foreach ($result in $category.Metadata) {
+							Write-ColorOutput -ForegroundColor gray -MessageData "$($result.grandparentTitle) - $($result.title) [$($result.parentTitle)]"
+						}
+					} else {
+						Write-ColorOutput -ForegroundColor yellow -MessageData "No results at this time."
 					}
 				}
 			}
