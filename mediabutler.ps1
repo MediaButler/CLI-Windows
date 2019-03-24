@@ -209,17 +209,20 @@ function chooseServer() {
 		Write-Information ""
 		$menu = @{}
 		foreach ($server in $mbLoginResponse.servers) {
-			#try {
-			#	$owner = [System.Convert]::ToBoolean($server.owner)
-			#} catch [FormatException] {
-			#	$owner = $false
-			#}
-			#if ($owner) {
+			try {
+				$owner = [System.Convert]::ToBoolean($server.owner)
+			} catch [FormatException] {
+				$owner = $false
+			}
 				$i++
-				Write-ColorOutput -nonewline -MessageData "$i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($server.name)"
+				Write-ColorOutput -nonewline -MessageData "$i) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "$($server.name)"
+				if ($owner) {
+					Write-ColorOutput -ForegroundColor gray -MessageData " (Owner)"
+				} else {
+					Write-Information ""
+				}
 				$serverInfo = @{"serverName"="$($server.name)"; "machineId"="$($server.machineId)"; "mbToken"="$($server.token)";};
 				$menu.Add($i,($serverInfo))
-			#}
 		}
 		Write-Information ""
 		do {
@@ -516,7 +519,7 @@ function requestsMenu() {
 	do {
 		Write-Information ""
 		Write-Information "*****************************************"
-		Write-Information '*            ~Requests Menu~            *'
+		Write-Information '*          ~Plex Requests Menu~         *'
 		Write-Information "*****************************************"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-ColorOutput -ForegroundColor gray -MessageData " indicates Admin only)         "
@@ -564,7 +567,7 @@ function issuesMenu() {
 	do {
 		Write-Information ""
 		Write-Information "*****************************************"
-		Write-Information '*             ~Issues Menu~             *'
+		Write-Information '*        ~Plex Media Issues Menu~       *'
 		Write-Information "*****************************************"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
 		Write-ColorOutput -nonewline -ForegroundColor gray -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-ColorOutput -ForegroundColor gray -MessageData " indicates Admin only)         "
@@ -620,7 +623,7 @@ function playbackMenu() {
 	do {
 		Write-Information ""
 		Write-Information "*****************************************"
-		Write-Information '*            ~Playback Menu~            *'
+		Write-Information '*         ~Plex Playback Menu~          *'
 		Write-Information "*****************************************"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-ColorOutput -ForegroundColor gray -MessageData " indicates Admin only)         "
@@ -668,7 +671,7 @@ function searchMenu() {
 	do {
 		Write-Information ""
 		Write-Information "*****************************************"
-		Write-Information '*             ~Search Menu~             *'
+		Write-Information '*        ~Plex Media Search Menu~       *'
 		Write-Information "*****************************************"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
 		Write-Information ""
@@ -754,7 +757,7 @@ function resetAll() {
 		Write-ColorOutput -ForegroundColor red -MessageData "**WARNING!!!** This will reset ALL setup progress!"
 		Write-ColorOutput -ForegroundColor yellow -MessageData "Do you wish to continue?"
 		Write-Information ""
-		Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -MessageData "o";
+		Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -ForegroundColor gray -MessageData "o";
 		$answ = Read-Host
 		if (($answ -notlike "y") -And ($answ -notlike "yes") -And ($answ -notlike "n") -And ($answ -notlike "no")) {
 			Write-ColorOutput -ForegroundColor red -MessageData "Please specify yes, y, no, or n."
