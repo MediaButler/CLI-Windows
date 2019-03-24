@@ -998,18 +998,20 @@ function setupTautulli() {
 
 # Fucntion to get a list of Profiles from *arr and create a menu for the user to pick from
 # Returns selected profile name
-function arrProfiles($response) {
+function arrProfiles($response, $arr) {
 	do {
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please choose which profile you would like to set as the default for MediaButler:"
 		$menu = @{}
-		$i = 0
+		[int]$i = 0
 		Write-Information ""
 		foreach ($prof in $response) {
 			$i++
 			Write-ColorOutput -nonewline -MessageData "$i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($prof.name)"
 			$menu.Add($i,($prof.name))
 		}
+		$i++
+		Write-ColorOutput -nonewline -MessageData "$i) "; Write-ColorOutput -ForegroundColor gray -MessageData "Cancel"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Profile (1-$($i)): "
 		$ans = Read-Host
@@ -1018,9 +1020,16 @@ function arrProfiles($response) {
 		} catch {
 			[int]$ans = 0
 		}
-		if (($ans -ge 1) -And ($ans -le $i)) {
+		if (($ans -ge 1) -And ($ans -le $i-1)) {
 			$valid = $true
 			$menu.Item($ans)
+		} elseif ($ans -eq $i) {
+			$valid = $true
+			if ($arr -eq "Sonarr") {
+				sonarrMenu
+			} elseif ($arr -eq "Radarr") {
+				radarrMenu
+			}
 		} else {
 			$valid = $false
 			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
@@ -1029,18 +1038,20 @@ function arrProfiles($response) {
 }
 
 # Print Root Directories in a menu and get response
-function arrRootDir($response) {
+function arrRootDir($response, $arr) {
 	do {
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please choose which root directory you would like to set as the default for MediaButler:"
 		$menu = @{}
-		$i = 0
+		[int]$i = 0
 		Write-Information ""
 		foreach ($rootDir in $response) {
 			$i++
 			Write-ColorOutput -nonewline -MessageData "$i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($rootDir.path)"
 			$menu.Add($i,($rootDir.path))
 		}
+		$i++
+		Write-ColorOutput -nonewline -MessageData "$i) "; Write-ColorOutput -ForegroundColor gray -MessageData "Cancel"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Root Dir (1-$($i)): "
 		$ans = Read-Host
@@ -1049,9 +1060,16 @@ function arrRootDir($response) {
 		} catch {
 			[int]$ans = 0
 		}
-		if (($ans -ge 1) -And ($ans -le $i)) {
+		if (($ans -ge 1) -And ($ans -le $i-1)) {
 			$valid = $true
 			$menu.Item($ans)
+		} elseif ($ans -eq $i) {
+			$valid = $true
+			if ($arr -eq "Sonarr") {
+				sonarrMenu
+			} elseif ($arr -eq "Radarr") {
+				radarrMenu
+			}
 		} else {
 			$valid = $false
 			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
@@ -1165,7 +1183,7 @@ function setupArr($ans) {
 		};
 		$response = Invoke-WebRequest -Uri $url"api/profile" -Headers $headers -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
-		$arrProfile = arrProfiles $response
+		$arrProfile = arrProfiles $response $arr
 	} catch {
 		Write-Debug $_.Exception.Message
 	}
@@ -1177,7 +1195,7 @@ function setupArr($ans) {
 		};
 		$response = Invoke-WebRequest -Uri $url"api/rootfolder" -Headers $headers -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
-		$rootDir = arrRootDir $response
+		$rootDir = arrRootDir $response $arr
 	} catch {
 		Write-Debug $_.Exception.Message
 	}
@@ -1243,7 +1261,6 @@ function setupArr($ans) {
 		radarrMenu
 	}
 }
-
 
 # Submit a TV or Movie Request
 function submitRequest() {
