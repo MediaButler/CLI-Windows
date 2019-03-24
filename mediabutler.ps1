@@ -1271,7 +1271,7 @@ function submitRequest() {
 			$valid = $true
 			$type="music"
 			Write-ColorOutput -ForegroundColor red -MessageData "Not configured yet!"
-			resultsMenu
+			requestsMenu
 		} elseif ($ans -eq 4) {
 			$valid = $true
 			Clear-Host
@@ -1340,6 +1340,9 @@ function submitRequest() {
 		} while (-Not($valid))
 	} catch {
 		Write-Debug $_.Exception.Message
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor red -MessageData "Your search yielded no results!"
+		requestsMenu
 	}
 	Write-Information ""
 	Write-ColorOutput -ForegroundColor gray -MessageData "Submitting your request..."
