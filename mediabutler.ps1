@@ -74,10 +74,14 @@ function checkPlexAuth() {
 	if ([string]::IsNullOrEmpty($userData.authToken)) {
 		do {
 			Write-Information ""
-			Write-ColorOutput -ForegroundColor gray -MessageData "First thing we need are your Plex credentials so please choose from one of the following options:"
+			Write-ColorOutput -ForegroundColor gray -MessageData "Welcome to the MediaButler Linux CLI Utility!"
 			Write-Information ""
-			Write-ColorOutput -nonewline -MessageData "1) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Username and Password"
-			Write-ColorOutput -nonewline -MessageData "2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex token"
+			Write-ColorOutput -ForegroundColor gray -MessageData "First thing we need to get started are your Plex credentials."
+			Write-ColorOutput -ForegroundColor gray -MessageData "Please choose from one of the following options:"
+			Write-Information ""
+			Write-ColorOutput -nonewline -MessageData "  1) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Username and Password"
+			Write-ColorOutput -nonewline -MessageData "  2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex token"
+			Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Exit"
 			Write-Information ""
 			$valid = $false
 			Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
@@ -108,6 +112,9 @@ function checkPlexAuth() {
 					}
 				} while ([string]::IsNullOrEmpty($mbLoginResponse))
 				$valid = $true
+			} elseif ($ans -eq 3) {
+				Clear-Host
+				Exit
 			} else {
 				Write-Information ""
 				Write-ColorOutput -ForegroundColor red -MessageData "Invalid Response. Please try again."
@@ -192,6 +199,7 @@ function mbLogin($authToken) {
 		$response = $response | ConvertFrom-Json
 		$response
 	} catch [System.Net.WebException] {
+		Write-Debug $_.Exception.Message
 		$response
 	}
 }
@@ -215,7 +223,7 @@ function chooseServer() {
 				$owner = $false
 			}
 				$i++
-				Write-ColorOutput -nonewline -MessageData "$i) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "$($server.name)"
+				Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "$($server.name)"
 				if ($owner) {
 					Write-ColorOutput -ForegroundColor gray -MessageData " (Owner)"
 				} else {
@@ -259,6 +267,7 @@ function testMB($url) {
 			$isMB = $true;
 		}
 	} catch [System.Net.WebException] {
+		Write-Debug $_.Exception.Message
 		$isMB = $false;
 	}
 	$isMB
@@ -387,20 +396,20 @@ function checkAdmin() {
 function mainMenu() {
 	do {
 		Write-Information ""
-		Write-Information "*****************************************"
-		Write-Information "*              ~Main Menu~              *"
-		Write-Information "*****************************************"
+		Write-Information "+---------------------------------------+"
+		Write-Information "|              ~Main Menu~              |"
+		Write-Information "+---------------------------------------+"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-ColorOutput -ForegroundColor gray -MessageData " indicates Admin only)         "
 		Write-Information ""
-		Write-ColorOutput -nonewline -MessageData "1) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Configure Applications"; Write-ColorOutput -ForegroundColor red -MessageData "*"
-		Write-ColorOutput -nonewline -MessageData "2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Requests"
-		Write-ColorOutput -nonewline -MessageData "3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Issues"
-		Write-ColorOutput -nonewline -MessageData "4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Playback Information"
-		Write-ColorOutput -nonewline -MessageData "5) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Library Information"
-		Write-ColorOutput -nonewline -MessageData "6) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Search"
-		Write-ColorOutput -nonewline -MessageData "7) "; Write-ColorOutput -ForegroundColor gray -MessageData "Reset Config"
-		Write-ColorOutput -nonewline -MessageData "8) "; Write-ColorOutput -ForegroundColor gray -MessageData "Exit"
+		Write-ColorOutput -nonewline -MessageData "  1) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Configure Applications"; Write-ColorOutput -ForegroundColor red -MessageData "*"
+		Write-ColorOutput -nonewline -MessageData "  2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Requests"
+		Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Issues"
+		Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Playback Information"
+		Write-ColorOutput -nonewline -MessageData "  5) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Library Information"
+		Write-ColorOutput -nonewline -MessageData "  6) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Search"
+		Write-ColorOutput -nonewline -MessageData "  7) "; Write-ColorOutput -ForegroundColor gray -MessageData "Reset Config"
+		Write-ColorOutput -nonewline -MessageData "  8) "; Write-ColorOutput -ForegroundColor gray -MessageData "Exit"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
 		$ans = Read-Host
@@ -456,13 +465,13 @@ function mainMenu() {
 function endpointMenu() {
 	do {
 		Write-Information ""
-		Write-Information "*****************************************"
-		Write-Information "*     ~Endpoint Configuration Menu~     *"
-		Write-Information "*****************************************"
+		Write-Information "+---------------------------------------+"
+		Write-Information "|     ~Endpoint Configuration Menu~     |"
+		Write-Information "+---------------------------------------+"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please choose which application you would"
 		Write-ColorOutput -ForegroundColor gray -MessageData "   like to configure for MediaButler:    "
 		Write-Information ""
-		Write-ColorOutput -nonewline -MessageData "1) "
+		Write-ColorOutput -nonewline -MessageData "  1) "
 		if ($setupChecks.sonarr -And $setupChecks.sonarr4k) {
 			Write-ColorOutput -ForegroundColor green -MessageData "Sonarr"
 		} elseif ($setupChecks.sonarr -Or $setupChecks.sonarr4k) {
@@ -470,7 +479,7 @@ function endpointMenu() {
 		} else {
 			Write-ColorOutput -ForegroundColor red -MessageData "Sonarr"
 		}
-		Write-ColorOutput -nonewline -MessageData "2) "
+		Write-ColorOutput -nonewline -MessageData "  2) "
 		if ($setupChecks.radarr -And $setupChecks.radarr4k -And $setupChecks.radarr3d) {
 			Write-ColorOutput -ForegroundColor green -MessageData "Radarr"
 		} elseif ($setupChecks.radarr -Or $setupChecks.radarr4k -Or $setupChecks.radarr3d) {
@@ -478,13 +487,13 @@ function endpointMenu() {
 		} else {
 			Write-ColorOutput -ForegroundColor red -MessageData "Radarr"
 		}
-		Write-ColorOutput -nonewline -MessageData "3) "
+		Write-ColorOutput -nonewline -MessageData "  3) "
 		if ($setupChecks.tautulli) {
 			Write-ColorOutput -ForegroundColor green -MessageData "Tautulli"
 		} else {
 			Write-ColorOutput -ForegroundColor red -MessageData "Tautulli"
 		}
-		Write-ColorOutput -nonewline -MessageData "4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Return to Main Menu"
+		Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Return to Main Menu"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
 		$ans = Read-Host
@@ -518,15 +527,15 @@ function endpointMenu() {
 function requestsMenu() {
 	do {
 		Write-Information ""
-		Write-Information "*****************************************"
-		Write-Information '*          ~Plex Requests Menu~         *'
-		Write-Information "*****************************************"
+		Write-Information "+---------------------------------------+"
+		Write-Information '|          ~Plex Requests Menu~         |'
+		Write-Information "+---------------------------------------+"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-ColorOutput -ForegroundColor gray -MessageData " indicates Admin only)         "
 		Write-Information ""
-		Write-ColorOutput -nonewline -MessageData "1) "; Write-ColorOutput -ForegroundColor gray -MessageData "Submit Request"
-		Write-ColorOutput -nonewline -MessageData "2) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Manage Requests"; Write-ColorOutput -ForegroundColor red "*"
-		Write-ColorOutput -nonewline -MessageData "3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
+		Write-ColorOutput -nonewline -MessageData "  1) "; Write-ColorOutput -ForegroundColor gray -MessageData "Submit Request"
+		Write-ColorOutput -nonewline -MessageData "  2) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Manage Requests"; Write-ColorOutput -ForegroundColor red "*"
+		Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
 		$ans = Read-Host
@@ -566,15 +575,15 @@ function requestsMenu() {
 function issuesMenu() {
 	do {
 		Write-Information ""
-		Write-Information "*****************************************"
-		Write-Information '*        ~Plex Media Issues Menu~       *'
-		Write-Information "*****************************************"
+		Write-Information "+---------------------------------------+"
+		Write-Information '|        ~Plex Media Issues Menu~       |'
+		Write-Information "+---------------------------------------+"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
 		Write-ColorOutput -nonewline -ForegroundColor gray -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-ColorOutput -ForegroundColor gray -MessageData " indicates Admin only)         "
 		Write-Information ""
-		Write-ColorOutput -nonewline -MessageData "1) "; Write-ColorOutput -ForegroundColor gray -MessageData "Add Issue"
-		Write-ColorOutput -nonewline -MessageData "2) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Manage Issues"; Write-ColorOutput -ForegroundColor red "*"
-		Write-ColorOutput -nonewline -MessageData "3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
+		Write-ColorOutput -nonewline -MessageData "  1) "; Write-ColorOutput -ForegroundColor gray -MessageData "Add Issue"
+		Write-ColorOutput -nonewline -MessageData "  2) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Manage Issues"; Write-ColorOutput -ForegroundColor red "*"
+		Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
 		$ans = Read-Host
@@ -622,15 +631,15 @@ function issuesMenu() {
 function playbackMenu() {
 	do {
 		Write-Information ""
-		Write-Information "*****************************************"
-		Write-Information '*         ~Plex Playback Menu~          *'
-		Write-Information "*****************************************"
+		Write-Information "+---------------------------------------+"
+		Write-Information '|         ~Plex Playback Menu~          |'
+		Write-Information "+---------------------------------------+"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-ColorOutput -ForegroundColor gray -MessageData " indicates Admin only)         "
 		Write-Information ""
-		Write-ColorOutput -nonewline -MessageData "1) "; Write-ColorOutput -ForegroundColor gray -MessageData "Playback History"
-		Write-ColorOutput -nonewline -MessageData "2) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Now Playing"; Write-ColorOutput -ForegroundColor red "*"
-		Write-ColorOutput -nonewline -MessageData "3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
+		Write-ColorOutput -nonewline -MessageData "  1) "; Write-ColorOutput -ForegroundColor gray -MessageData "Playback History"
+		Write-ColorOutput -nonewline -MessageData "  2) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Now Playing"; Write-ColorOutput -ForegroundColor red "*"
+		Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
 		$ans = Read-Host
@@ -670,16 +679,16 @@ function playbackMenu() {
 function searchMenu() {
 	do {
 		Write-Information ""
-		Write-Information "*****************************************"
-		Write-Information '*        ~Plex Media Search Menu~       *'
-		Write-Information "*****************************************"
+		Write-Information "+---------------------------------------+"
+		Write-Information '|        ~Plex Media Search Menu~       |'
+		Write-Information "+---------------------------------------+"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
 		Write-Information ""
-		Write-ColorOutput -nonewline -MessageData "1) "; Write-ColorOutput -ForegroundColor gray -MessageData "TV Shows"
-		Write-ColorOutput -nonewline -MessageData "2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Movies"
-		Write-ColorOutput -nonewline -MessageData "3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Music"
-		Write-ColorOutput -nonewline -MessageData "4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Everything"
-		Write-ColorOutput -nonewline -MessageData "5) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
+		Write-ColorOutput -nonewline -MessageData "  1) "; Write-ColorOutput -ForegroundColor gray -MessageData "TV Shows"
+		Write-ColorOutput -nonewline -MessageData "  2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Movies"
+		Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Music"
+		Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Everything"
+		Write-ColorOutput -nonewline -MessageData "  5) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
 		$ans = Read-Host
@@ -765,6 +774,10 @@ function resetAll() {
 		} elseif (($answ -like "y") -Or ($answ -like "yes")) {
 			$valid = $true
 			Remove-Item $userDataPath
+			Write-Information ""
+			Write-ColorOutput -ForegroundColor green -MessageData "The saved User Data has been removed."
+			Write-ColorOutput -ForegroundColor yellow -MessageData "Exiting the script..."
+			Start-Sleep -s 3
 			Clear-Host
 			Exit
 		} elseif (($answ -like "n") -Or ($answ -like "no")) {
@@ -778,25 +791,25 @@ function resetAll() {
 function sonarrMenu() {
 	do {
 		Write-Information ""
-		Write-Information "*****************************************"
-		Write-Information "*           Sonarr Setup Menu           *"
-		Write-Information "*****************************************"
+		Write-Information "+---------------------------------------+"
+		Write-Information "|           Sonarr Setup Menu           |"
+		Write-Information "+---------------------------------------+"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please choose which version of Sonarr you"
 		Write-ColorOutput -ForegroundColor gray -MessageData "would like to configure for MediaButler: "
 		Write-Information ""
-		Write-ColorOutput -nonewline -MessageData "1) "
+		Write-ColorOutput -nonewline -MessageData "  1) "
 		if ($setupChecks.sonarr) {
 			Write-ColorOutput -ForegroundColor green -MessageData "Sonarr"
 		} else {
 			Write-ColorOutput -ForegroundColor red -MessageData "Sonarr"
 		}
-		Write-ColorOutput -nonewline -MessageData "2) "
+		Write-ColorOutput -nonewline -MessageData "  2) "
 		if ($setupChecks.sonarr4k) {
 			Write-ColorOutput -ForegroundColor green -MessageData "Sonarr 4K"
 		} else {
 			Write-ColorOutput -ForegroundColor red -MessageData "Sonarr 4K"
 		}
-		Write-ColorOutput -nonewline -MessageData "3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
+		Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
 		$ans = Read-Host
@@ -823,31 +836,31 @@ function sonarrMenu() {
 function radarrMenu() {
 	do {
 		Write-Information ""
-		Write-Information "*****************************************"
-		Write-Information "*           Radarr Setup Menu           *"
-		Write-Information "*****************************************"
+		Write-Information "+---------------------------------------+"
+		Write-Information "|           Radarr Setup Menu           |"
+		Write-Information "+---------------------------------------+"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please choose which version of Radarr you"
 		Write-ColorOutput -ForegroundColor gray -MessageData "would like to configure for MediaButler: "
 		Write-Information ""
-		Write-ColorOutput -nonewline -MessageData "1) "
+		Write-ColorOutput -nonewline -MessageData "  1) "
 		if ($setupChecks.radarr) {
 			Write-ColorOutput -ForegroundColor green -MessageData "Radarr"
 		} else {
 			Write-ColorOutput -ForegroundColor red -MessageData "Radarr"
 		}
-		Write-ColorOutput -nonewline -MessageData "2) "
+		Write-ColorOutput -nonewline -MessageData "  2) "
 		if ($setupChecks.radarr4k) {
 			Write-ColorOutput -ForegroundColor green -MessageData "Radarr 4K"
 		} else {
 			Write-ColorOutput -ForegroundColor red -MessageData "Radarr 4K"
 		}
-		Write-ColorOutput -nonewline -MessageData "3) "
+		Write-ColorOutput -nonewline -MessageData "  3) "
 		if ($setupChecks.radarr3d) {
 			Write-ColorOutput -ForegroundColor green -MessageData "Radarr 3D"
 		} else {
 			Write-ColorOutput -ForegroundColor red -MessageData "Radarr 3D"
 		}
-		Write-ColorOutput -nonewline -MessageData "4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
+		Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
 		$ans = Read-Host
@@ -1007,11 +1020,11 @@ function arrProfiles($response, $arr) {
 		Write-Information ""
 		foreach ($prof in $response) {
 			$i++
-			Write-ColorOutput -nonewline -MessageData "$i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($prof.name)"
+			Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($prof.name)"
 			$menu.Add($i,($prof.name))
 		}
 		$i++
-		Write-ColorOutput -nonewline -MessageData "$i) "; Write-ColorOutput -ForegroundColor gray -MessageData "Cancel"
+		Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "Cancel"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Profile (1-$($i)): "
 		$ans = Read-Host
@@ -1047,11 +1060,11 @@ function arrRootDir($response, $arr) {
 		Write-Information ""
 		foreach ($rootDir in $response) {
 			$i++
-			Write-ColorOutput -nonewline -MessageData "$i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($rootDir.path)"
+			Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($rootDir.path)"
 			$menu.Add($i,($rootDir.path))
 		}
 		$i++
-		Write-ColorOutput -nonewline -MessageData "$i) "; Write-ColorOutput -ForegroundColor gray -MessageData "Cancel"
+		Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "Cancel"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Root Dir (1-$($i)): "
 		$ans = Read-Host
@@ -1265,15 +1278,15 @@ function setupArr($ans) {
 # Submit a TV or Movie Request
 function submitRequest() {
 	Write-Information ""
-	Write-Information "*****************************************"
-	Write-Information "*          ~Submit A Request~           *"
-	Write-Information "*****************************************"
+	Write-Information "+---------------------------------------+"
+	Write-Information "|          ~Submit A Request~           |"
+	Write-Information "+---------------------------------------+"
 	Write-ColorOutput -ForegroundColor gray -MessageData "What would you like to request?"
 	Write-Information ""
-	Write-ColorOutput -nonewline -MessageData "1) "; Write-ColorOutput -ForegroundColor gray -MessageData "TV"
-	Write-ColorOutput -nonewline -MessageData "2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Movie"
-	Write-ColorOutput -nonewline -MessageData "3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Music"
-	Write-ColorOutput -nonewline -MessageData "4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
+	Write-ColorOutput -nonewline -MessageData "  1) "; Write-ColorOutput -ForegroundColor gray -MessageData "TV"
+	Write-ColorOutput -nonewline -MessageData "  2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Movie"
+	Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Music"
+	Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
 	Write-Information ""
 	do {
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
@@ -1324,16 +1337,16 @@ function submitRequest() {
 		foreach ($result in $response.results) {
 			$i++
 			if ($type -eq "tv") {
-				Write-ColorOutput -nonewline -MessageData "$i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($result.seriesName)"
+				Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($result.seriesName)"
 				$resultInfo = @{"title"="$($result.seriesName)"; "id"="$($result.id)";};
 			} elseif ($type -eq "movie") {
-				Write-ColorOutput -nonewline -MessageData "$i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($result.title) ($($result.year))"
+				Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($result.title) ($($result.year))"
 				$resultInfo = @{"title"="$($result.title)"; "id"="$($result.imdbid)";};
 			}
 			$menu.Add($i,($resultInfo))
 		}
 		$i++
-		Write-ColorOutput -nonewline -MessageData "$i) "; Write-ColorOutput -ForegroundColor gray -MessageData "Cancel"
+		Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "Cancel"
 		$resultInfo = @{"title"="Cancel"; "id"="Cancel";};
 		$menu.Add($i,($resultInfo))
 		do {
@@ -1417,12 +1430,12 @@ function manageRequests() {
 		$response = $response | ConvertFrom-Json
 		foreach ($request in $response) {
 			$i++
-			Write-ColorOutput -nonewline -MessageData "$i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($request.title)"
+			Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($request.title)"
 			$requestInfo = @{"title"="$($request.title)"; "id"="$($request._id)"; "requestedBy"="$($request.username)"; "requestedDate"="$($request.dateAdded)"; "requestStatus"="$($request.status)";};
 			$menu.Add($i,($requestInfo))
 		}
 		$i++
-		Write-ColorOutput -nonewline -MessageData "$i) "; Write-ColorOutput -ForegroundColor gray -MessageData "Cancel"
+		Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "Cancel"
 		$resultInfo = @{"title"="Cancel"; "id"="Cancel";};
 		$menu.Add($i,($resultInfo))
 	} catch {
@@ -1473,9 +1486,9 @@ function manageRequests() {
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -MessageData "What would you like to do with this request?"
 		Write-Information ""
-		Write-ColorOutput -nonewline -MessageData "1) "; Write-ColorOutput -ForegroundColor gray -MessageData "Approve Request"
-		Write-ColorOutput -nonewline -MessageData "2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Deny Request"
-		Write-ColorOutput -nonewline -MessageData "3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Manage Requests"
+		Write-ColorOutput -nonewline -MessageData "  1) "; Write-ColorOutput -ForegroundColor gray -MessageData "Approve Request"
+		Write-ColorOutput -nonewline -MessageData "  2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Deny Request"
+		Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Manage Requests"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
 		$ans = Read-Host
