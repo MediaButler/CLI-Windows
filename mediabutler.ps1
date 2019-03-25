@@ -74,10 +74,14 @@ function checkPlexAuth() {
 	if ([string]::IsNullOrEmpty($userData.authToken)) {
 		do {
 			Write-Information ""
-			Write-ColorOutput -ForegroundColor gray -MessageData "First thing we need are your Plex credentials so please choose from one of the following options:"
+			Write-ColorOutput -ForegroundColor gray -MessageData "Welcome to the MediaButler Linux CLI Utility!"
+			Write-Information ""
+			Write-ColorOutput -ForegroundColor gray -MessageData "First thing we need to get started are your Plex credentials."
+			Write-ColorOutput -ForegroundColor gray -MessageData "Please choose from one of the following options:"
 			Write-Information ""
 			Write-ColorOutput -nonewline -MessageData "  1) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Username and Password"
 			Write-ColorOutput -nonewline -MessageData "  2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex token"
+			Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Exit"
 			Write-Information ""
 			$valid = $false
 			Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
@@ -108,6 +112,9 @@ function checkPlexAuth() {
 					}
 				} while ([string]::IsNullOrEmpty($mbLoginResponse))
 				$valid = $true
+			} elseif ($ans -eq 3) {
+				Clear-Host
+				Exit
 			} else {
 				Write-Information ""
 				Write-ColorOutput -ForegroundColor red -MessageData "Invalid Response. Please try again."
@@ -767,6 +774,10 @@ function resetAll() {
 		} elseif (($answ -like "y") -Or ($answ -like "yes")) {
 			$valid = $true
 			Remove-Item $userDataPath
+			Write-Information ""
+			Write-ColorOutput -ForegroundColor green -MessageData "The saved User Data has been removed."
+			Write-ColorOutput -ForegroundColor yellow -MessageData "Exiting the script..."
+			Start-Sleep -s 3
 			Clear-Host
 			Exit
 		} elseif (($answ -like "n") -Or ($answ -like "no")) {
