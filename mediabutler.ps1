@@ -396,9 +396,9 @@ function checkAdmin() {
 function mainMenu() {
 	do {
 		Write-Information ""
-		Write-Information "*****************************************"
-		Write-Information "*              ~Main Menu~              *"
-		Write-Information "*****************************************"
+		Write-Information "+---------------------------------------+"
+		Write-Information "|              ~Main Menu~              |"
+		Write-Information "+---------------------------------------+"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-ColorOutput -ForegroundColor gray -MessageData " indicates Admin only)         "
 		Write-Information ""
@@ -465,9 +465,9 @@ function mainMenu() {
 function endpointMenu() {
 	do {
 		Write-Information ""
-		Write-Information "*****************************************"
-		Write-Information "*     ~Endpoint Configuration Menu~     *"
-		Write-Information "*****************************************"
+		Write-Information "+---------------------------------------+"
+		Write-Information "|     ~Endpoint Configuration Menu~     |"
+		Write-Information "+---------------------------------------+"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please choose which application you would"
 		Write-ColorOutput -ForegroundColor gray -MessageData "   like to configure for MediaButler:    "
 		Write-Information ""
@@ -527,9 +527,9 @@ function endpointMenu() {
 function requestsMenu() {
 	do {
 		Write-Information ""
-		Write-Information "*****************************************"
-		Write-Information '*          ~Plex Requests Menu~         *'
-		Write-Information "*****************************************"
+		Write-Information "+---------------------------------------+"
+		Write-Information '|          ~Plex Requests Menu~         |'
+		Write-Information "+---------------------------------------+"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-ColorOutput -ForegroundColor gray -MessageData " indicates Admin only)         "
 		Write-Information ""
@@ -575,9 +575,9 @@ function requestsMenu() {
 function issuesMenu() {
 	do {
 		Write-Information ""
-		Write-Information "*****************************************"
-		Write-Information '*        ~Plex Media Issues Menu~       *'
-		Write-Information "*****************************************"
+		Write-Information "+---------------------------------------+"
+		Write-Information '|        ~Plex Media Issues Menu~       |'
+		Write-Information "+---------------------------------------+"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
 		Write-ColorOutput -nonewline -ForegroundColor gray -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-ColorOutput -ForegroundColor gray -MessageData " indicates Admin only)         "
 		Write-Information ""
@@ -631,9 +631,9 @@ function issuesMenu() {
 function playbackMenu() {
 	do {
 		Write-Information ""
-		Write-Information "*****************************************"
-		Write-Information '*         ~Plex Playback Menu~          *'
-		Write-Information "*****************************************"
+		Write-Information "+---------------------------------------+"
+		Write-Information '|         ~Plex Playback Menu~          |'
+		Write-Information "+---------------------------------------+"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-ColorOutput -ForegroundColor gray -MessageData " indicates Admin only)         "
 		Write-Information ""
@@ -679,9 +679,9 @@ function playbackMenu() {
 function searchMenu() {
 	do {
 		Write-Information ""
-		Write-Information "*****************************************"
-		Write-Information '*        ~Plex Media Search Menu~       *'
-		Write-Information "*****************************************"
+		Write-Information "+---------------------------------------+"
+		Write-Information '|        ~Plex Media Search Menu~       |'
+		Write-Information "+---------------------------------------+"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
 		Write-Information ""
 		Write-ColorOutput -nonewline -MessageData "  1) "; Write-ColorOutput -ForegroundColor gray -MessageData "TV Shows"
@@ -791,9 +791,9 @@ function resetAll() {
 function sonarrMenu() {
 	do {
 		Write-Information ""
-		Write-Information "*****************************************"
-		Write-Information "*           Sonarr Setup Menu           *"
-		Write-Information "*****************************************"
+		Write-Information "+---------------------------------------+"
+		Write-Information "|           Sonarr Setup Menu           |"
+		Write-Information "+---------------------------------------+"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please choose which version of Sonarr you"
 		Write-ColorOutput -ForegroundColor gray -MessageData "would like to configure for MediaButler: "
 		Write-Information ""
@@ -836,9 +836,9 @@ function sonarrMenu() {
 function radarrMenu() {
 	do {
 		Write-Information ""
-		Write-Information "*****************************************"
-		Write-Information "*           Radarr Setup Menu           *"
-		Write-Information "*****************************************"
+		Write-Information "+---------------------------------------+"
+		Write-Information "|           Radarr Setup Menu           |"
+		Write-Information "+---------------------------------------+"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please choose which version of Radarr you"
 		Write-ColorOutput -ForegroundColor gray -MessageData "would like to configure for MediaButler: "
 		Write-Information ""
@@ -1278,9 +1278,9 @@ function setupArr($ans) {
 # Submit a TV or Movie Request
 function submitRequest() {
 	Write-Information ""
-	Write-Information "*****************************************"
-	Write-Information "*          ~Submit A Request~           *"
-	Write-Information "*****************************************"
+	Write-Information "+---------------------------------------+"
+	Write-Information "|          ~Submit A Request~           |"
+	Write-Information "+---------------------------------------+"
 	Write-ColorOutput -ForegroundColor gray -MessageData "What would you like to request?"
 	Write-Information ""
 	Write-ColorOutput -nonewline -MessageData "  1) "; Write-ColorOutput -ForegroundColor gray -MessageData "TV"
