@@ -284,13 +284,10 @@ function getMbURL() {
 			Write-ColorOutput -ForegroundColor gray -MessageData "Gathering required information..."
 			$headers = @{
 				"MB-Client-Identifier"=$uuid;
+				"MB-Plex-Token"=$userData.authToken;
+				"MB-Machine-Identifier"=$userData.machineId;
 			};
-			$body = @{
-				"authToken"=$userData.authToken;
-				"machineId"=$userData.machineId;
-			};
-			$body = $body | ConvertTo-Json
-			$mbURL = Invoke-WebRequest -Uri $mbDiscoverURL -Method POST -Headers $headers -Body $body -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
+			$mbURL = Invoke-WebRequest -Uri $mbDiscoverURL -Method GET -Headers $headers -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
 			Write-ColorOutput -ForegroundColor green -MessageData "Done!"
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor gray -MessageData "Is this the correct MediaButler URL?"
