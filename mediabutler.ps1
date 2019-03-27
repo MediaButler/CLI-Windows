@@ -288,6 +288,10 @@ function getMbURL() {
 				"MB-Machine-Identifier"=$userData.machineId;
 			};
 			$mbURL = Invoke-WebRequest -Uri $mbDiscoverURL -Method GET -Headers $headers -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
+			Write-Debug "Received URL: $mbURL"
+			if ([string]::IsNullOrEmpty($mbURL)) {
+				throw "Blank result"
+			}
 			Write-ColorOutput -ForegroundColor green -MessageData "Done!"
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor gray -MessageData "Is this the correct MediaButler URL?"
