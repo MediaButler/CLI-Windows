@@ -408,9 +408,10 @@ function mainMenu() {
 		Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Issues"
 		Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Playback Information"
 		Write-ColorOutput -nonewline -MessageData "  5) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Library Information"
-		Write-ColorOutput -nonewline -MessageData "  6) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Search"
-		Write-ColorOutput -nonewline -MessageData "  7) "; Write-ColorOutput -ForegroundColor gray -MessageData "Reset Config"
-		Write-ColorOutput -nonewline -MessageData "  8) "; Write-ColorOutput -ForegroundColor gray -MessageData "Exit"
+		Write-ColorOutput -nonewline -MessageData "  6) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Manage Permissions"; Write-ColorOutput -ForegroundColor red -MessageData "*"
+		Write-ColorOutput -nonewline -MessageData "  7) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Search"
+		Write-ColorOutput -nonewline -MessageData "  8) "; Write-ColorOutput -ForegroundColor gray -MessageData "Reset Config"
+		Write-ColorOutput -nonewline -MessageData "  9) "; Write-ColorOutput -ForegroundColor gray -MessageData "Exit"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
 		$ans = Read-Host
@@ -419,7 +420,7 @@ function mainMenu() {
 		} catch {
 			[int]$ans = 0
 		}
-		if (-Not(($ans -ge 1) -And ($ans -le 8))) {
+		if (-Not(($ans -ge 1) -And ($ans -le 9))) {
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 			$valid = $false
@@ -451,11 +452,14 @@ function mainMenu() {
 			#libraryMenu
 		} elseif ($ans -eq 6) {
 			$valid = $true
-			searchMenu
+			managePerms
 		} elseif ($ans -eq 7) {
 			$valid = $true
-			resetAll
+			searchMenu
 		} elseif ($ans -eq 8) {
+			$valid = $true
+			resetAll
+		} elseif ($ans -eq 9) {
 			$valid = $true
 			exitMenu
 		}
@@ -494,7 +498,8 @@ function endpointMenu() {
 		} else {
 			Write-ColorOutput -ForegroundColor red -MessageData "Tautulli"
 		}
-		Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Return to Main Menu"
+		Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Requests"
+		Write-ColorOutput -nonewline -MessageData "  5) "; Write-ColorOutput -ForegroundColor gray -MessageData "Return to Main Menu"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
 		$ans = Read-Host
@@ -503,7 +508,7 @@ function endpointMenu() {
 		} catch {
 			[int]$ans = 0
 		}
-		if (-Not(($ans -ge 1) -And ($ans -le 4))) {
+		if (-Not(($ans -ge 1) -And ($ans -le 5))) {
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 			$valid = $false
@@ -517,6 +522,9 @@ function endpointMenu() {
 			$valid = $true
 			setupTautulli
 		} elseif ($ans -eq 4) {
+			$valid = $true
+			configRequests
+		} elseif ($ans -eq 5) {
 			$valid = $true
 			Clear-Host
 			mainMenu
@@ -730,6 +738,47 @@ function searchMenu() {
 			$valid = $true
 			searchAll($ans)
 		} elseif ($ans -eq 5) {
+			$valid = $true
+			Clear-Host
+			mainMenu
+		}
+	} while (-Not($valid))
+}
+
+function userMgmtMenu() {
+	do {
+		Write-Information ""
+		Write-Information "+---------------------------------------+"
+		Write-Information '|         ~User Management Menu~        |'
+		Write-Information "+---------------------------------------+"
+		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
+		Write-ColorOutput -nonewline -ForegroundColor gray -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-ColorOutput -ForegroundColor gray -MessageData " indicates Admin only)         "
+		Write-Information ""
+		Write-ColorOutput -nonewline -MessageData "  1) "; Write-ColorOutput -ForegroundColor gray -MessageData "Add Permissions"
+		Write-ColorOutput -nonewline -MessageData "  2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Remove Permissions"
+		Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Reset User"
+		Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
+		$ans = Read-Host
+		try {
+			$ans = [int]$ans
+		} catch {
+			[int]$ans = 0
+		}
+		if (-Not(($ans -ge 1) -And ($ans -le 4))) {
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+			$valid = $false
+		} elseif ($ans -eq 1) {
+			$valid = $true
+			addPerms
+		} elseif ($ans -eq 2) {
+			$valid = $true
+			remPerms
+		} elseif ($ans -eq 3) {
+			$valid = $true
+			resetPerms
+		} elseif ($ans -eq 4) {
 			$valid = $true
 			Clear-Host
 			mainMenu
