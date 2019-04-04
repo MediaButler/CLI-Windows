@@ -1961,6 +1961,85 @@ function searchAll($ans) {
 	searchMenu
 }
 
+function configRequests() {
+	do {
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor gray -MessageData "How many days should the limit include?"
+		$days = Read-Host
+		try {
+			$days = [int]$days
+			$valid = $true;
+		} catch {
+			[int]$days = 0
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+			$valid = $false;
+		}
+	} while (-Not ($valid))
+	do {
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor gray -MessageData "How many requests can be made?"
+		$reqs = Read-Host
+		try {
+			$reqs = [int]$reqs
+			$valid = $true;
+		} catch {
+			[int]$reqs = 0
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+			$valid = $false;
+		}
+	} while (-Not ($valid))
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	$body = @{
+		"limitAmount"=$reqs;
+		"limitDays"=$days;
+	};
+	$body = $body | ConvertTo-Json
+	$formattedURL = [System.String]::Concat(($userData.mbURL), 'configure/requests')
+	Write-Information ""
+	Write-ColorOutput -ForegroundColor gray -MessageData "Testing the requests config for MediaButler..."
+	try {
+		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
+		$response = $response | ConvertFrom-Json
+	} catch {
+		Write-Debug $_.Exception.Message
+	}
+	if ($response.message -eq "success") {
+		Write-ColorOutput -ForegroundColor green -MessageData "Success!"
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor gray -MessageData "Saving the requests config to MediaButler..."
+		try {
+			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
+			$response = $response | ConvertFrom-Json
+		} catch {
+			Write-Debug $_.Exception.Message
+		}
+		if ($response.message -eq "success") {
+			Write-ColorOutput -ForegroundColor green -MessageData "Done! The requests have been successfully configured for"
+			Write-ColorOutput -ForegroundColor green -MessageData "MediaButler with the $($userData.serverName) Plex server."
+			$setupChecks.($endpoint)= $true
+			Write-Information ""
+			Write-ColorOutput -ForegroundColor gray -MessageData "Returning you to the Endpoint Configuration Menu..."
+			Start-Sleep -s 3
+			Clear-Host
+			endpointMenu
+		}  elseif ($response.message -ne "success") {
+			Write-ColorOutput -ForegroundColor red -MessageData "Config push failed! Please try again later."
+			Start-Sleep -s 3
+			Clear-Host
+			endpointMenu
+		}
+	} elseif ($response.message -ne "success") {
+		Write-ColorOutput -ForegroundColor red -MessageData "Hmm, something weird happened. Please try again."
+		Start-Sleep -s 3
+		Clear-Host
+		endpointMenu
+	}
+}
+
 function main () {
 	checkUserData
 	checkPlexAuth
