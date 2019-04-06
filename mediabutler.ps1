@@ -404,13 +404,14 @@ function mainMenu() {
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-ColorOutput -ForegroundColor gray -MessageData " indicates Admin only)         "
 		Write-Information ""
 		Write-ColorOutput -nonewline -MessageData "  1) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Configure Applications"; Write-ColorOutput -ForegroundColor red -MessageData "*"
-		Write-ColorOutput -nonewline -MessageData "  2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Requests"
-		Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Issues"
-		Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Playback Information"
-		Write-ColorOutput -nonewline -MessageData "  5) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Library Information"
-		Write-ColorOutput -nonewline -MessageData "  6) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Search"
-		Write-ColorOutput -nonewline -MessageData "  7) "; Write-ColorOutput -ForegroundColor gray -MessageData "Reset Config"
-		Write-ColorOutput -nonewline -MessageData "  8) "; Write-ColorOutput -ForegroundColor gray -MessageData "Exit"
+		Write-ColorOutput -nonewline -MessageData "  2) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Manage Permissions"; Write-ColorOutput -ForegroundColor red -MessageData "*"
+		Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Requests"
+		Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Issues"
+		Write-ColorOutput -nonewline -MessageData "  5) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Playback Information"
+		Write-ColorOutput -nonewline -MessageData "  6) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Library Information"
+		Write-ColorOutput -nonewline -MessageData "  7) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Search"
+		Write-ColorOutput -nonewline -MessageData "  8) "; Write-ColorOutput -ForegroundColor gray -MessageData "Reset Config"
+		Write-ColorOutput -nonewline -MessageData "  9) "; Write-ColorOutput -ForegroundColor gray -MessageData "Exit"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
 		$ans = Read-Host
@@ -419,7 +420,7 @@ function mainMenu() {
 		} catch {
 			[int]$ans = 0
 		}
-		if (-Not(($ans -ge 1) -And ($ans -le 8))) {
+		if (-Not(($ans -ge 1) -And ($ans -le 9))) {
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 			$valid = $false
@@ -436,26 +437,29 @@ function mainMenu() {
 			}
 		} elseif ($ans -eq 2) {
 			$valid = $true
-			requestsMenu
+			manageUsers
 		} elseif ($ans -eq 3) {
 			$valid = $true
-			issuesMenu
+			requestsMenu
 		} elseif ($ans -eq 4) {
 			$valid = $true
-			playbackMenu
+			issuesMenu
 		} elseif ($ans -eq 5) {
+			$valid = $true
+			playbackMenu
+		} elseif ($ans -eq 6) {
 			$valid = $true
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor red -MessageData "Not setup yet!"
 			mainMenu
 			#libraryMenu
-		} elseif ($ans -eq 6) {
-			$valid = $true
-			searchMenu
 		} elseif ($ans -eq 7) {
 			$valid = $true
-			resetAll
+			searchMenu
 		} elseif ($ans -eq 8) {
+			$valid = $true
+			resetAll
+		} elseif ($ans -eq 9) {
 			$valid = $true
 			exitMenu
 		}
@@ -494,7 +498,8 @@ function endpointMenu() {
 		} else {
 			Write-ColorOutput -ForegroundColor red -MessageData "Tautulli"
 		}
-		Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Return to Main Menu"
+		Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Requests"
+		Write-ColorOutput -nonewline -MessageData "  5) "; Write-ColorOutput -ForegroundColor gray -MessageData "Return to Main Menu"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
 		$ans = Read-Host
@@ -503,7 +508,7 @@ function endpointMenu() {
 		} catch {
 			[int]$ans = 0
 		}
-		if (-Not(($ans -ge 1) -And ($ans -le 4))) {
+		if (-Not(($ans -ge 1) -And ($ans -le 5))) {
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 			$valid = $false
@@ -517,6 +522,9 @@ function endpointMenu() {
 			$valid = $true
 			setupTautulli
 		} elseif ($ans -eq 4) {
+			$valid = $true
+			configRequests
+		} elseif ($ans -eq 5) {
 			$valid = $true
 			Clear-Host
 			mainMenu
@@ -729,6 +737,52 @@ function searchMenu() {
 		} elseif ($ans -eq 4) {
 			$valid = $true
 			searchAll($ans)
+		} elseif ($ans -eq 5) {
+			$valid = $true
+			Clear-Host
+			mainMenu
+		}
+	} while (-Not($valid))
+}
+
+function userMgmtMenu($username) {
+	do {
+		Write-Information ""
+		Write-Information "+---------------------------------------+"
+		Write-Information '|       ~Manage Permissions Menu~       |'
+		Write-Information "+---------------------------------------+"
+		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Currently selected user: "; Write-ColorOutput -ForegroundColor yellow -MessageData $username
+		Write-Information ""
+		Write-ColorOutput -nonewline -MessageData "  1) "; Write-ColorOutput -ForegroundColor gray -MessageData "Add Permissions"
+		Write-ColorOutput -nonewline -MessageData "  2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Remove Permissions"
+		Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Reset User"
+		Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Select Another User"
+		Write-ColorOutput -nonewline -MessageData "  5) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
+		$ans = Read-Host
+		try {
+			$ans = [int]$ans
+		} catch {
+			[int]$ans = 0
+		}
+		if (-Not(($ans -ge 1) -And ($ans -le 5))) {
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+			$valid = $false
+		} elseif ($ans -eq 1) {
+			$valid = $true
+			addPerms $username
+		} elseif ($ans -eq 2) {
+			$valid = $true
+			remPerms $username
+		} elseif ($ans -eq 3) {
+			$valid = $true
+			resetPerms $username
+		} elseif ($ans -eq 4) {
+			$valid = $true
+			manageUsers
 		} elseif ($ans -eq 5) {
 			$valid = $true
 			Clear-Host
@@ -1610,7 +1664,6 @@ function manageRequests() {
 	issuesMenu
 }
 
-# View Requests
 function manageIssues() {
 	$headers = @{
 		"Content-Type"="application/json"
@@ -1708,13 +1761,13 @@ function playbackHistory() {
 		Write-ColorOutput -ForegroundColor blue -MessageData "============================================================"
 		if (-Not [string]::IsNullOrEmpty($response.response.data.data)) {
 			[Int]$count = [String]$response.response.data.total_duration.length
-			if ($count -le 8) {
+			if ($count -lt 8) {
 				$tabs = "`t`t`t`t"
-			} elseif ($count -gt 8 -And $count -le 16) {
+			} elseif ($count -ge 8 -And $count -lt 16) {
 				$tabs = "`t`t`t"
-			} elseif ($count -gt 16 -And $count -le 24) {
+			} elseif ($count -ge 16 -And $count -lt 24) {
 				$tabs = "`t`t"
-			} elseif ($count -gt 24) {
+			} elseif ($count -ge 24) {
 				$tabs = "`t"
 			}
 			Write-Information "Total Duration`t`t`tShown Duration"
@@ -1910,6 +1963,391 @@ function searchAll($ans) {
 		Write-Debug $_.Exception.Message
 	}
 	searchMenu
+}
+
+function configRequests() {
+	do {
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor gray -MessageData "How many days would you like to set the limit cycle to?"
+		$days = Read-Host
+		try {
+			$days = [int]$days
+			$valid = $true;
+		} catch {
+			[int]$days = 0
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+			$valid = $false;
+		}
+	} while (-Not ($valid))
+	do {
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor gray -MessageData "What would you like to set the request limit to?"
+		$reqs = Read-Host
+		try {
+			$reqs = [int]$reqs
+			$valid = $true;
+		} catch {
+			[int]$reqs = 0
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+			$valid = $false;
+		}
+	} while (-Not ($valid))
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	$body = @{
+		"limitAmount"=$reqs;
+		"limitDays"=$days;
+	};
+	$body = $body | ConvertTo-Json
+	$formattedURL = [System.String]::Concat(($userData.mbURL), 'configure/requests')
+	#Write-Information ""
+	#Write-ColorOutput -ForegroundColor gray -MessageData "Testing the requests config for MediaButler..."
+	try {
+		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
+		$response = $response | ConvertFrom-Json
+	} catch {
+		Write-Debug $_.Exception.Message
+	}
+	if ($response.message -eq "success") {
+		#Write-ColorOutput -ForegroundColor green -MessageData "Success!"
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor gray -MessageData "Saving the new request limits to MediaButler..."
+		try {
+			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
+			Write-Information $response
+			$response = $response | ConvertFrom-Json
+		} catch {
+			Write-Debug $_.Exception.Message
+		}
+		if ($response.message -eq "success") {
+			#Write-ColorOutput -ForegroundColor green -MessageData "Done! The requests have been successfully configured for"
+			#Write-ColorOutput -ForegroundColor green -MessageData "MediaButler with the $($userData.serverName) Plex server."
+			#Write-Information ""
+			#Write-ColorOutput -ForegroundColor gray -MessageData "Returning you to the Endpoint Configuration Menu..."
+			Start-Sleep -s 3
+			Clear-Host
+			endpointMenu
+		}  elseif ($response.message -ne "success") {
+			Write-ColorOutput -ForegroundColor red -MessageData "There was an issue saving the new request limits!"
+			Write-ColorOutput -ForegroundColor yellow -MessageData "Please try again later."
+			Start-Sleep -s 3
+			Clear-Host
+			endpointMenu
+		}
+	} elseif ($response.message -ne "success") {
+		Write-ColorOutput -ForegroundColor red -MessageData "There was an issue saving the new request limits!"
+		Write-ColorOutput -ForegroundColor yellow -MessageData "Please try again later."
+		Start-Sleep -s 3
+		Clear-Host
+		endpointMenu
+	}
+}
+
+function manageUsers() {
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	$formattedURL = [System.String]::Concat(($userData.mbURL), 'user')
+	try {
+		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
+		Write-Debug $response
+		$response = $response | ConvertFrom-Json
+		$menu = @{}
+		[int]$i = 0
+		#$list = Get-Content -Path "..\list.txt"
+		foreach ($user in $response) {
+			$i++
+			$menu.Add($i,($user.username))
+		}
+		#for ($i=0; $i -lt $list.length; $i++) {
+		#	$menu.Add($i+1,($list[$i]))
+		#}
+		#$i = $list.length
+		$i++
+		$menu.Add($i,"Cancel")
+		do {
+			Write-Information ""
+			Write-ColorOutput -ForegroundColor gray -MessageData "Which user would you like to manage permissions for?"
+			Write-Information ""
+			if ($menu.count -lt 22) {
+				$rows = $menu.count
+			} else {
+				$rows = 22;
+			}
+			for ($i=1; $i -le $rows; $i++) {
+				$cols = [math]::floor([decimal]$menu.count/22)+1
+				for ($j=0; $j -lt $cols; $j++) {
+					$str = ""
+					$itemNum = $i+(22*$j)
+					$str += $menu[$itemNum]
+					[Int]$count = [String]$menu[$itemNum].length
+					if ($count -lt 2) {
+						$tabs = "`t`t`t`t"
+					} elseif ($count -ge 2 -And $count -lt 10) {
+						$tabs = "`t`t`t"
+					} elseif ($count -ge 10 -And $count -lt 18) {
+						$tabs = "`t`t"
+					} elseif ($count -ge 18) {
+						$tabs = "`t"
+					}
+					if ($j -lt $cols-1) {
+						# Fix tab spacing to make up for extra digit
+						if ($i -lt 10 -And $j -eq 0) {
+							$str += " "
+						}
+						$str += $tabs
+					}
+					if (-Not [string]::IsNullOrEmpty([String]$menu[$itemNum])) {
+						Write-ColorOutput -nonewline -MessageData "  $itemNum) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData $str
+					}
+				}
+				Write-Information ""
+			}
+			$i = $menu.count
+			Write-Information ""
+			Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "User (1-$($i)): "
+			$ans = Read-Host
+			try {
+				$ans = [int]$ans
+			} catch {
+				[int]$ans = 0
+			}
+			if (($ans -ge 1) -And ($ans -le $i-1)) {
+				$valid = $true
+				userMgmtMenu $menu.Item($ans)
+			} elseif ($ans -eq $i) {
+				$valid = $true
+				mainMenu
+			} else {
+				$valid = $false
+				Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+			}
+		} while (-Not ($valid))
+	} catch {
+		Write-Debug $_.Exception.Message
+	}
+}
+
+function addPerms($username) {
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	do {
+		$formattedURL = [System.String]::Concat(($userData.mbURL), 'version')
+		$menu = @{}
+		$i=0
+		try {
+			$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
+			$response = $response | ConvertFrom-Json
+			$permissions =  [System.Collections.ArrayList]@()
+			foreach ($permission in $response.permissions) {
+				$permissions.Add($permission) | Out-Null
+			}
+			$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/', ($username), "/")
+			$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
+			$response = $response | ConvertFrom-Json
+			foreach ($permission in $response.permissions) {
+				$permissions.Remove($permission) | Out-Null
+			}
+			if ($permissions.count -eq 0) {
+				Write-ColorOutput -ForegroundColor red -MessageData "Nothing to add!"
+				mainMenu
+			}
+			Write-Information ""
+			Write-ColorOutput -ForegroundColor gray -MessageData "What permission would you like to add?"
+			Write-Information ""
+			foreach ($permission in $permissions) {
+				$i++
+				Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($permission)"
+				$menu.Add($i,($permission))
+			}
+			$i++
+			$menu.Add($i,"Cancel")
+			Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "Cancel"
+		} catch {
+			Write-Debug $_.Exception.Message
+			mainMenu
+		}
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Permission (1-$($i)): "
+		$ans = Read-Host
+		try {
+			$ans = [int]$ans
+		} catch {
+			[int]$ans = 0
+		}
+		if (($ans -ge 1) -And ($ans -le $i-1)) {
+			$valid = $true
+			try {
+				$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
+				$response = $response | ConvertFrom-Json
+				$permissions =  [System.Collections.ArrayList]@()
+				foreach ($perm in $response.permissions) {
+					$permissions.Add($perm) | Out-Null
+				}
+				$permissions.Add($menu.Item($ans)) | Out-Null
+				$body = @{
+					"permissions"=$permissions;
+				}
+				$body = $body | ConvertTo-Json
+			} catch {
+				Write-Debug "Get user info:"
+				Write-Debug $_.Exception.Message
+			}
+			try {
+				$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/', ($username), "/")
+				$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -TimeoutSec 10 -UseBasicParsing
+				#$response = $response | ConvertFrom-Json
+				Write-Information ""
+				#Write-ColorOutput -ForegroundColor green -MessageData "Permission has been successfully added!"
+				Write-Information $response
+				Start-Sleep -s 3
+				Clear-Host
+				userMgmtMenu $username
+			} catch {
+				Write-Debug "Save user info:"
+				Write-Debug $_.Exception.Message
+			}
+		} elseif ($ans -eq $i) {
+			$valid = $true
+			mainMenu
+		} else {
+			$valid = $false
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+		}
+	} while (-Not($valid))
+}
+
+function remPerms($username) {
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	do {
+		$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/', ($username), "/")
+		$menu = @{}
+		$i=0
+		try {
+			$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
+			$response = $response | ConvertFrom-Json
+			if ([string]::IsNullOrEmpty($response.permissions)) {
+				Write-ColorOutput -ForegroundColor red -MessageData "Selected user doesn't have any permissions to remove!"
+				mainMenu
+			}
+			Write-Information ""
+			Write-ColorOutput -ForegroundColor gray -MessageData "What permission would you like to remove?"
+			Write-Information ""
+			foreach ($permission in $response.permissions) {
+				$i++
+				Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($permission)"
+				$menu.Add($i,($permission))
+			}
+			$i++
+			$menu.Add($i,"Cancel")
+			Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "Cancel"
+		} catch {
+			Write-Debug $_.Exception.Message
+			userMgmtMenu $username
+		}
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Permission (1-$($i)): "
+		$ans = Read-Host
+		try {
+			$ans = [int]$ans
+		} catch {
+			[int]$ans = 0
+		}
+		if (($ans -ge 1) -And ($ans -le $i-1)) {
+			$valid = $true
+			try {
+				$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/', ($username), "/")
+				$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
+				$response = $response | ConvertFrom-Json
+				$permissions =  [System.Collections.ArrayList]@()
+				foreach ($perm in $response.permissions) {
+					$permissions.Add($perm) | Out-Null
+				}
+				$permissions.Remove($menu.Item($ans)) | Out-Null
+				$body = @{
+					"permissions"=$permissions;
+				}
+				$body = $body | ConvertTo-Json
+			} catch {
+				Write-Debug "Get user info:"
+				Write-Debug $_.Exception.Message
+			}
+			try {
+				$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/', ($username), "/")
+				$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -TimeoutSec 10 -UseBasicParsing
+				#$response = $response | ConvertFrom-Json
+				Write-Information ""
+				#Write-ColorOutput -ForegroundColor green -MessageData "Permission has been successfully removed!"
+				Write-Information $response
+				Start-Sleep -s 3
+				Clear-Host
+				userMgmtMenu $username
+			} catch {
+				Write-Debug "Save user info:"
+				Write-Debug $_.Exception.Message
+			}
+		} elseif ($ans -eq $i) {
+			$valid = $true
+			mainMenu
+		} else {
+			$valid = $false
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+		}
+	} while (-Not($valid))
+}
+
+function resetPerms($username) {
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	$body = @{
+		"permissions"="";
+	}
+	$body = $body | ConvertTo-Json
+	do {
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor red -nonewline -MessageData "**WARNING!!!** This will reset ALL permissions for the user ";  Write-ColorOutput -ForegroundColor yellow -nonewline -MessageData $username;  Write-ColorOutput -ForegroundColor red -MessageData "!";
+		Write-ColorOutput -ForegroundColor yellow -MessageData "Do you wish to continue?"
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -ForegroundColor gray -MessageData "o";
+		$answ = Read-Host
+		if (($answ -notlike "y") -And ($answ -notlike "yes") -And ($answ -notlike "n") -And ($answ -notlike "no")) {
+			Write-ColorOutput -ForegroundColor red -MessageData "Please specify yes, y, no, or n."
+			$valid = $false
+		} elseif (($answ -like "y") -Or ($answ -like "yes")) {
+			try {
+				$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/', ($username), "/")
+				$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -TimeoutSec 10 -UseBasicParsing
+				#$response = $response | ConvertFrom-Json
+				Write-Information ""
+				#Write-ColorOutput -ForegroundColor green -MessageData "Permissions have been successfully reset!"
+				Write-Information $response
+				Start-Sleep -s 3
+				Clear-Host
+				userMgmtMenu $username
+			} catch {
+				Write-Debug $_.Exception.Message
+			}
+		} elseif (($answ -like "n") -Or ($answ -like "no")) {
+			$valid = $true
+			Clear-Host
+			userMgmtMenu $username
+		}
+	} while (-Not($valid))
 }
 
 function main () {
