@@ -452,7 +452,7 @@ function mainMenu() {
 			#libraryMenu
 		} elseif ($ans -eq 6) {
 			$valid = $true
-			managePerms
+			manageUsers
 		} elseif ($ans -eq 7) {
 			$valid = $true
 			searchMenu
@@ -745,7 +745,7 @@ function searchMenu() {
 	} while (-Not($valid))
 }
 
-function userMgmtMenu() {
+function userMgmtMenu($username) {
 	do {
 		Write-Information ""
 		Write-Information "+---------------------------------------+"
@@ -771,13 +771,13 @@ function userMgmtMenu() {
 			$valid = $false
 		} elseif ($ans -eq 1) {
 			$valid = $true
-			addPerms
+			addPerms $username
 		} elseif ($ans -eq 2) {
 			$valid = $true
-			remPerms
+			remPerms $username
 		} elseif ($ans -eq 3) {
 			$valid = $true
-			resetPerms
+			resetPerms $username
 		} elseif ($ans -eq 4) {
 			$valid = $true
 			Clear-Host
@@ -1757,13 +1757,13 @@ function playbackHistory() {
 		Write-ColorOutput -ForegroundColor blue -MessageData "============================================================"
 		if (-Not [string]::IsNullOrEmpty($response.response.data.data)) {
 			[Int]$count = [String]$response.response.data.total_duration.length
-			if ($count -le 8) {
+			if ($count -lt 8) {
 				$tabs = "`t`t`t`t"
-			} elseif ($count -gt 8 -And $count -le 16) {
+			} elseif ($count -ge 8 -And $count -lt 16) {
 				$tabs = "`t`t`t"
-			} elseif ($count -gt 16 -And $count -le 24) {
+			} elseif ($count -ge 16 -And $count -lt 24) {
 				$tabs = "`t`t"
-			} elseif ($count -gt 24) {
+			} elseif ($count -ge 24) {
 				$tabs = "`t"
 			}
 			Write-Information "Total Duration`t`t`tShown Duration"
@@ -2038,6 +2038,165 @@ function configRequests() {
 		Clear-Host
 		endpointMenu
 	}
+}
+
+function manageUsers() {
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	$formattedURL = [System.String]::Concat(($userData.mbURL), 'user')
+	try {
+		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
+		Write-Debug $response
+		$response = $response | ConvertFrom-Json
+		$menu = @{}
+		[int]$i = 0
+		#$list = Get-Content -Path "..\list.txt"
+		foreach ($user in $response) {
+			$i++
+			$menu.Add($i,($user.username))
+		}
+		#for ($i=0; $i -lt $list.length; $i++) {
+		#	$menu.Add($i+1,($list[$i]))
+		#}
+		#$i = $list.length
+		$i++
+		$menu.Add($i,"Cancel")
+		do {
+			Write-Information ""
+			Write-ColorOutput -ForegroundColor gray -MessageData "Which user would you like to edit?"
+			Write-Information ""
+			if ($menu.count -lt 22) {
+				$rows = $menu.count
+			} else {
+				$rows = 22;
+			}
+			for ($i=1; $i -le $rows; $i++) {
+				$cols = [math]::floor([decimal]$menu.count/22)+1
+				for ($j=0; $j -lt $cols; $j++) {
+					$str = ""
+					$itemNum = $i+(22*$j)
+					$str += $menu[$itemNum]
+					[Int]$count = [String]$menu[$itemNum].length
+					if ($count -lt 2) {
+						$tabs = "`t`t`t`t"
+					} elseif ($count -ge 2 -And $count -lt 10) {
+						$tabs = "`t`t`t"
+					} elseif ($count -ge 10 -And $count -lt 18) {
+						$tabs = "`t`t"
+					} elseif ($count -ge 18) {
+						$tabs = "`t"
+					}
+					if ($j -lt $cols-1) {
+						# Fix tab spacing to make up for extra digit
+						if ($i -lt 10 -And $j -eq 0) {
+							$str += " "
+						}
+						$str += $tabs
+					}
+					if (-Not [string]::IsNullOrEmpty([String]$menu[$itemNum])) {
+						Write-ColorOutput -nonewline -MessageData "  $itemNum) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData $str
+					}
+				}
+				Write-Information ""
+			}
+			$i = $menu.count
+			Write-Information ""
+			Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "User (1-$($i)): "
+			$ans = Read-Host
+			try {
+				$ans = [int]$ans
+			} catch {
+				[int]$ans = 0
+			}
+			if (($ans -ge 1) -And ($ans -le $i-1)) {
+				$valid = $true
+				userMgmtMenu $menu.Item($ans)
+			} elseif ($ans -eq $i) {
+				$valid = $true
+				mainMenu
+			} else {
+				$valid = $false
+				Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+			}
+		} while (-Not ($valid))
+	} catch {
+		Write-Debug $_.Exception.Message
+	}
+}
+
+function addPerms($username) {
+	Write-Information ""
+	Write-ColorOutput -ForegroundColor gray -MessageData "What permission would you like to add?"
+	Write-Information ""
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	$formattedURL = [System.String]::Concat(($userData.mbURL), 'version')
+	$menu = @{}
+	$i=0
+	try {
+		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
+		$response = $response | ConvertFrom-Json
+		foreach ($permission in $response.permissions) {
+			$i++
+			Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($permission)"
+			$menu.Add($i,($permission))
+		}
+		$i++
+		$menu.Add($i,"Cancel")
+	} catch {
+		Write-Debug $_.Exception.Message
+		mainMenu
+	}
+	do {
+		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Permission (1-$($i)): "
+		$ans = Read-Host
+		try {
+			$ans = [int]$ans
+		} catch {
+			[int]$ans = 0
+		}
+		if (($ans -ge 1) -And ($ans -le $i-1)) {
+			$valid = $true
+			try {
+				$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/', ($username), "/")
+				$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
+				$response = $response | ConvertFrom-Json
+				$permissions =  [System.Collections.ArrayList]@()
+				foreach ($perm in $response.permissions) {
+					$permissions.Add($perm)
+				}
+				$permissions.Add($menu.Item($ans))
+				$body = @{
+					"permissions"=$permissions;
+				}
+				$body = $body | ConvertTo-Json
+			} catch {
+				Write-Debug "Get user info:"
+				Write-Debug $_.Exception.Message
+			}
+			try {
+				$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/', ($username), "/")
+				$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -TimeoutSec 10 -UseBasicParsing
+				$response = $response | ConvertFrom-Json
+				Write-Debug $response
+			} catch {
+				Write-Debug "Save user info:"
+				Write-Debug $_.Exception.Message
+			}
+		} elseif ($ans -eq $i) {
+			$valid = $true
+			mainMenu
+		} else {
+			$valid = $false
+			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
+		}
+	} while (-Not($valid))
 }
 
 function main () {
