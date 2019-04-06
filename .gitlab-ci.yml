@@ -21,7 +21,7 @@ test_docker:
 deploy_docker_int:
   stage: deploy
   before_script:
-    - docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN reg.lab.mediabutler.io
+    - docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN reg.mediabutler.io
   script:
     - docker build -t reg.mediabutler.io/mediabutler/windows-cli-utility:${CI_COMMIT_REF_NAME} .
     - docker push reg.mediabutler.io/mediabutler/windows-cli-utility:${CI_COMMIT_REF_NAME}
