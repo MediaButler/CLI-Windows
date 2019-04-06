@@ -404,11 +404,11 @@ function mainMenu() {
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-ColorOutput -ForegroundColor gray -MessageData " indicates Admin only)         "
 		Write-Information ""
 		Write-ColorOutput -nonewline -MessageData "  1) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Configure Applications"; Write-ColorOutput -ForegroundColor red -MessageData "*"
-		Write-ColorOutput -nonewline -MessageData "  2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Requests"
-		Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Issues"
-		Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Playback Information"
-		Write-ColorOutput -nonewline -MessageData "  5) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Library Information"
-		Write-ColorOutput -nonewline -MessageData "  6) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Manage Permissions"; Write-ColorOutput -ForegroundColor red -MessageData "*"
+		Write-ColorOutput -nonewline -MessageData "  2) "; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Manage Permissions"; Write-ColorOutput -ForegroundColor red -MessageData "*"
+		Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Requests"
+		Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Issues"
+		Write-ColorOutput -nonewline -MessageData "  5) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Playback Information"
+		Write-ColorOutput -nonewline -MessageData "  6) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Library Information"
 		Write-ColorOutput -nonewline -MessageData "  7) "; Write-ColorOutput -ForegroundColor gray -MessageData "Plex Media Search"
 		Write-ColorOutput -nonewline -MessageData "  8) "; Write-ColorOutput -ForegroundColor gray -MessageData "Reset Config"
 		Write-ColorOutput -nonewline -MessageData "  9) "; Write-ColorOutput -ForegroundColor gray -MessageData "Exit"
@@ -437,22 +437,22 @@ function mainMenu() {
 			}
 		} elseif ($ans -eq 2) {
 			$valid = $true
-			requestsMenu
+			manageUsers
 		} elseif ($ans -eq 3) {
 			$valid = $true
-			issuesMenu
+			requestsMenu
 		} elseif ($ans -eq 4) {
 			$valid = $true
-			playbackMenu
+			issuesMenu
 		} elseif ($ans -eq 5) {
+			$valid = $true
+			playbackMenu
+		} elseif ($ans -eq 6) {
 			$valid = $true
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor red -MessageData "Not setup yet!"
 			mainMenu
 			#libraryMenu
-		} elseif ($ans -eq 6) {
-			$valid = $true
-			manageUsers
 		} elseif ($ans -eq 7) {
 			$valid = $true
 			searchMenu
@@ -749,15 +749,17 @@ function userMgmtMenu($username) {
 	do {
 		Write-Information ""
 		Write-Information "+---------------------------------------+"
-		Write-Information '|         ~User Management Menu~        |'
+		Write-Information '|       ~Manage Permissions Menu~       |'
 		Write-Information "+---------------------------------------+"
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please select from the following options:"
-		Write-ColorOutput -nonewline -ForegroundColor gray -MessageData "        ("; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "*"; Write-ColorOutput -ForegroundColor gray -MessageData " indicates Admin only)         "
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Currently selected user: "; Write-ColorOutput -ForegroundColor yellow -MessageData $username
 		Write-Information ""
 		Write-ColorOutput -nonewline -MessageData "  1) "; Write-ColorOutput -ForegroundColor gray -MessageData "Add Permissions"
 		Write-ColorOutput -nonewline -MessageData "  2) "; Write-ColorOutput -ForegroundColor gray -MessageData "Remove Permissions"
 		Write-ColorOutput -nonewline -MessageData "  3) "; Write-ColorOutput -ForegroundColor gray -MessageData "Reset User"
-		Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
+		Write-ColorOutput -nonewline -MessageData "  4) "; Write-ColorOutput -ForegroundColor gray -MessageData "Select Another User"
+		Write-ColorOutput -nonewline -MessageData "  5) "; Write-ColorOutput -ForegroundColor gray -MessageData "Back to Main Menu"
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Selection: "
 		$ans = Read-Host
@@ -766,7 +768,7 @@ function userMgmtMenu($username) {
 		} catch {
 			[int]$ans = 0
 		}
-		if (-Not(($ans -ge 1) -And ($ans -le 4))) {
+		if (-Not(($ans -ge 1) -And ($ans -le 5))) {
 			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 			$valid = $false
 		} elseif ($ans -eq 1) {
@@ -779,6 +781,9 @@ function userMgmtMenu($username) {
 			$valid = $true
 			resetPerms $username
 		} elseif ($ans -eq 4) {
+			$valid = $true
+			manageUsers
+		} elseif ($ans -eq 5) {
 			$valid = $true
 			Clear-Host
 			mainMenu
@@ -1659,7 +1664,6 @@ function manageRequests() {
 	issuesMenu
 }
 
-# View Requests
 function manageIssues() {
 	$headers = @{
 		"Content-Type"="application/json"
@@ -1964,7 +1968,7 @@ function searchAll($ans) {
 function configRequests() {
 	do {
 		Write-Information ""
-		Write-ColorOutput -ForegroundColor gray -MessageData "How many days should the limit include?"
+		Write-ColorOutput -ForegroundColor gray -MessageData "How many days would you like to set the limit cycle to?"
 		$days = Read-Host
 		try {
 			$days = [int]$days
@@ -1977,7 +1981,7 @@ function configRequests() {
 	} while (-Not ($valid))
 	do {
 		Write-Information ""
-		Write-ColorOutput -ForegroundColor gray -MessageData "How many requests can be made?"
+		Write-ColorOutput -ForegroundColor gray -MessageData "What would you like to set the request limit to?"
 		$reqs = Read-Host
 		try {
 			$reqs = [int]$reqs
@@ -1999,8 +2003,8 @@ function configRequests() {
 	};
 	$body = $body | ConvertTo-Json
 	$formattedURL = [System.String]::Concat(($userData.mbURL), 'configure/requests')
-	Write-Information ""
-	Write-ColorOutput -ForegroundColor gray -MessageData "Testing the requests config for MediaButler..."
+	#Write-Information ""
+	#Write-ColorOutput -ForegroundColor gray -MessageData "Testing the requests config for MediaButler..."
 	try {
 		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
 		$response = $response | ConvertFrom-Json
@@ -2008,32 +2012,34 @@ function configRequests() {
 		Write-Debug $_.Exception.Message
 	}
 	if ($response.message -eq "success") {
-		Write-ColorOutput -ForegroundColor green -MessageData "Success!"
+		#Write-ColorOutput -ForegroundColor green -MessageData "Success!"
 		Write-Information ""
-		Write-ColorOutput -ForegroundColor gray -MessageData "Saving the requests config to MediaButler..."
+		Write-ColorOutput -ForegroundColor gray -MessageData "Saving the new request limits to MediaButler..."
 		try {
 			$response = Invoke-WebRequest -Uri $formattedURL -Method POST -Headers $headers -Body $body -ContentType "application/json" -TimeoutSec 10 -UseBasicParsing
+			Write-Information $response
 			$response = $response | ConvertFrom-Json
 		} catch {
 			Write-Debug $_.Exception.Message
 		}
 		if ($response.message -eq "success") {
-			Write-ColorOutput -ForegroundColor green -MessageData "Done! The requests have been successfully configured for"
-			Write-ColorOutput -ForegroundColor green -MessageData "MediaButler with the $($userData.serverName) Plex server."
-			$setupChecks.($endpoint)= $true
-			Write-Information ""
-			Write-ColorOutput -ForegroundColor gray -MessageData "Returning you to the Endpoint Configuration Menu..."
+			#Write-ColorOutput -ForegroundColor green -MessageData "Done! The requests have been successfully configured for"
+			#Write-ColorOutput -ForegroundColor green -MessageData "MediaButler with the $($userData.serverName) Plex server."
+			#Write-Information ""
+			#Write-ColorOutput -ForegroundColor gray -MessageData "Returning you to the Endpoint Configuration Menu..."
 			Start-Sleep -s 3
 			Clear-Host
 			endpointMenu
 		}  elseif ($response.message -ne "success") {
-			Write-ColorOutput -ForegroundColor red -MessageData "Config push failed! Please try again later."
+			Write-ColorOutput -ForegroundColor red -MessageData "There was an issue saving the new request limits!"
+			Write-ColorOutput -ForegroundColor yellow -MessageData "Please try again later."
 			Start-Sleep -s 3
 			Clear-Host
 			endpointMenu
 		}
 	} elseif ($response.message -ne "success") {
-		Write-ColorOutput -ForegroundColor red -MessageData "Hmm, something weird happened. Please try again."
+		Write-ColorOutput -ForegroundColor red -MessageData "There was an issue saving the new request limits!"
+		Write-ColorOutput -ForegroundColor yellow -MessageData "Please try again later."
 		Start-Sleep -s 3
 		Clear-Host
 		endpointMenu
@@ -2066,7 +2072,7 @@ function manageUsers() {
 		$menu.Add($i,"Cancel")
 		do {
 			Write-Information ""
-			Write-ColorOutput -ForegroundColor gray -MessageData "Which user would you like to edit?"
+			Write-ColorOutput -ForegroundColor gray -MessageData "Which user would you like to manage permissions for?"
 			Write-Information ""
 			if ($menu.count -lt 22) {
 				$rows = $menu.count
@@ -2128,9 +2134,6 @@ function manageUsers() {
 }
 
 function addPerms($username) {
-	Write-Information ""
-	Write-ColorOutput -ForegroundColor gray -MessageData "What permission would you like to add?"
-	Write-Information ""
 	$headers = @{
 		"Content-Type"="application/json"
 		"MB-Client-Identifier"=$uuid;
@@ -2157,6 +2160,9 @@ function addPerms($username) {
 				Write-ColorOutput -ForegroundColor red -MessageData "Nothing to add!"
 				mainMenu
 			}
+			Write-Information ""
+			Write-ColorOutput -ForegroundColor gray -MessageData "What permission would you like to add?"
+			Write-Information ""
 			foreach ($permission in $permissions) {
 				$i++
 				Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($permission)"
@@ -2198,12 +2204,13 @@ function addPerms($username) {
 			try {
 				$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/', ($username), "/")
 				$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -TimeoutSec 10 -UseBasicParsing
-				$response = $response | ConvertFrom-Json
+				#$response = $response | ConvertFrom-Json
 				Write-Information ""
-				Write-ColorOutput -ForegroundColor green -MessageData "Permission has been successfully added!"
+				#Write-ColorOutput -ForegroundColor green -MessageData "Permission has been successfully added!"
+				Write-Information $response
 				Start-Sleep -s 3
 				Clear-Host
-				mainMenu
+				userMgmtMenu $username
 			} catch {
 				Write-Debug "Save user info:"
 				Write-Debug $_.Exception.Message
@@ -2219,9 +2226,6 @@ function addPerms($username) {
 }
 
 function remPerms($username) {
-	Write-Information ""
-	Write-ColorOutput -ForegroundColor gray -MessageData "What permission would you like to remove?"
-	Write-Information ""
 	$headers = @{
 		"Content-Type"="application/json"
 		"MB-Client-Identifier"=$uuid;
@@ -2235,9 +2239,12 @@ function remPerms($username) {
 			$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
 			$response = $response | ConvertFrom-Json
 			if ([string]::IsNullOrEmpty($response.permissions)) {
-				Write-ColorOutput -ForegroundColor red -MessageData "Nothing to remove!"
+				Write-ColorOutput -ForegroundColor red -MessageData "Selected user doesn't have any permissions to remove!"
 				mainMenu
 			}
+			Write-Information ""
+			Write-ColorOutput -ForegroundColor gray -MessageData "What permission would you like to remove?"
+			Write-Information ""
 			foreach ($permission in $response.permissions) {
 				$i++
 				Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($permission)"
@@ -2248,7 +2255,7 @@ function remPerms($username) {
 			Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "Cancel"
 		} catch {
 			Write-Debug $_.Exception.Message
-			mainMenu
+			userMgmtMenu $username
 		}
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "Permission (1-$($i)): "
@@ -2280,12 +2287,13 @@ function remPerms($username) {
 			try {
 				$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/', ($username), "/")
 				$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -TimeoutSec 10 -UseBasicParsing
-				$response = $response | ConvertFrom-Json
+				#$response = $response | ConvertFrom-Json
 				Write-Information ""
-				Write-ColorOutput -ForegroundColor green -MessageData "Permission has been successfully removed!"
+				#Write-ColorOutput -ForegroundColor green -MessageData "Permission has been successfully removed!"
+				Write-Information $response
 				Start-Sleep -s 3
 				Clear-Host
-				mainMenu
+				userMgmtMenu $username
 			} catch {
 				Write-Debug "Save user info:"
 				Write-Debug $_.Exception.Message
@@ -2310,18 +2318,36 @@ function resetPerms($username) {
 		"permissions"="";
 	}
 	$body = $body | ConvertTo-Json
-	try {
-		$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/', ($username), "/")
-		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -TimeoutSec 10 -UseBasicParsing
-		$response = $response | ConvertFrom-Json
+	do {
 		Write-Information ""
-		Write-ColorOutput -ForegroundColor green -MessageData "Permissions have been successfully reset!"
-		Start-Sleep -s 3
-		Clear-Host
-		mainMenu
-	} catch {
-		Write-Debug $_.Exception.Message
-	}
+		Write-ColorOutput -ForegroundColor red -nonewline -MessageData "**WARNING!!!** This will reset ALL permissions for the user ";  Write-ColorOutput -ForegroundColor yellow -nonewline -MessageData $username;  Write-ColorOutput -ForegroundColor red -MessageData "!";
+		Write-ColorOutput -ForegroundColor yellow -MessageData "Do you wish to continue?"
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor green -nonewline -MessageData "[Y]"; Write-ColorOutput -ForegroundColor gray -nonewline -MessageData "es or "; Write-ColorOutput -ForegroundColor red -nonewline -MessageData "[N]"; Write-ColorOutput -ForegroundColor gray -MessageData "o";
+		$answ = Read-Host
+		if (($answ -notlike "y") -And ($answ -notlike "yes") -And ($answ -notlike "n") -And ($answ -notlike "no")) {
+			Write-ColorOutput -ForegroundColor red -MessageData "Please specify yes, y, no, or n."
+			$valid = $false
+		} elseif (($answ -like "y") -Or ($answ -like "yes")) {
+			try {
+				$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/', ($username), "/")
+				$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -TimeoutSec 10 -UseBasicParsing
+				#$response = $response | ConvertFrom-Json
+				Write-Information ""
+				#Write-ColorOutput -ForegroundColor green -MessageData "Permissions have been successfully reset!"
+				Write-Information $response
+				Start-Sleep -s 3
+				Clear-Host
+				userMgmtMenu $username
+			} catch {
+				Write-Debug $_.Exception.Message
+			}
+		} elseif (($answ -like "n") -Or ($answ -like "no")) {
+			$valid = $true
+			Clear-Host
+			userMgmtMenu $username
+		}
+	} while (-Not($valid))
 }
 
 function main () {
