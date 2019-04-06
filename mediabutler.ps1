@@ -2143,7 +2143,21 @@ function addPerms($username) {
 		try {
 			$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
 			$response = $response | ConvertFrom-Json
+			$permissions =  [System.Collections.ArrayList]@()
 			foreach ($permission in $response.permissions) {
+				$permissions.Add($permission) | Out-Null
+			}
+			$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/', ($username), "/")
+			$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
+			$response = $response | ConvertFrom-Json
+			foreach ($permission in $response.permissions) {
+				$permissions.Remove($permission) | Out-Null
+			}
+			if ($permissions.count -eq 0) {
+				Write-ColorOutput -ForegroundColor red -MessageData "Nothing to add!"
+				mainMenu
+			}
+			foreach ($permission in $permissions) {
 				$i++
 				Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($permission)"
 				$menu.Add($i,($permission))
@@ -2166,7 +2180,6 @@ function addPerms($username) {
 		if (($ans -ge 1) -And ($ans -le $i-1)) {
 			$valid = $true
 			try {
-				$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/', ($username), "/")
 				$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
 				$response = $response | ConvertFrom-Json
 				$permissions =  [System.Collections.ArrayList]@()
@@ -2221,6 +2234,10 @@ function remPerms($username) {
 		try {
 			$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
 			$response = $response | ConvertFrom-Json
+			if ([string]::IsNullOrEmpty($response.permissions)) {
+				Write-ColorOutput -ForegroundColor red -MessageData "Nothing to remove!"
+				mainMenu
+			}
 			foreach ($permission in $response.permissions) {
 				$i++
 				Write-ColorOutput -nonewline -MessageData "  $i) "; Write-ColorOutput -ForegroundColor gray -MessageData "$($permission)"
@@ -2281,6 +2298,30 @@ function remPerms($username) {
 			Write-ColorOutput -ForegroundColor red -MessageData "You did not specify a valid option!"
 		}
 	} while (-Not($valid))
+}
+
+function resetPerms($username) {
+	$headers = @{
+		"Content-Type"="application/json"
+		"MB-Client-Identifier"=$uuid;
+		"Authorization"="Bearer " + $userData.mbToken;
+	};
+	$body = @{
+		"permissions"="";
+	}
+	$body = $body | ConvertTo-Json
+	try {
+		$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/', ($username), "/")
+		$response = Invoke-WebRequest -Uri $formattedURL -Method PUT -Headers $headers -Body $body -TimeoutSec 10 -UseBasicParsing
+		$response = $response | ConvertFrom-Json
+		Write-Information ""
+		Write-ColorOutput -ForegroundColor green -MessageData "Permissions have been successfully reset!"
+		Start-Sleep -s 3
+		Clear-Host
+		mainMenu
+	} catch {
+		Write-Debug $_.Exception.Message
+	}
 }
 
 function main () {
