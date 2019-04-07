@@ -1,5 +1,6 @@
 # MediaButler Windows CLI Utility
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/569a11e2f08d48edab7c57404417ba29)](https://www.codacy.com/app/HalianElf/CLI-Windows?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MediaButler/CLI-Windows&amp;utm_campaign=Badge_Grade)
 [![Chat on Discord](https://img.shields.io/discord/379374148436230144.svg)](https://discord.gg/nH9t5sm)
 [![made-with-powershell](https://img.shields.io/badge/Made%20with-Powershell-1f425f.svg)](https://github.com/PowerShell/PowerShell)
 [![](https://badge-size.herokuapp.com/MediaButler/CLI-Windows/master/mediabutler.ps1)](https://github.com/MediaButler/CLI-Windows/blob/master/mediabutler.ps1)
@@ -13,19 +14,19 @@ A command line tool to enable usage of the [MediaButler Server](https://github.c
  - [x] Can configure Sonarr/Radarr/Tautulli for use with the [Server](https://github.com/MediaButler/Server)
  - [x] Add and Manage Requests
  - [ ] Add and Manage Issues
- - [ ] Media Search
+ - [x] Media Search
  - [x] Retrieve currently playing statistics
  - [x] Playback History
 
  ## Why do you need my Plex username and password?
 
- As the [Server](https://github.com/MediaButler/Server) only supports authenticated forms of communication we require this information to perform an authentication with Plex. This information is used ONLY to perform Plex authencation and is not saved. We do however save a resulting token that is unique that is saved so you do not have to perform authentication again.
+ As the [Server](https://github.com/MediaButler/Server) only supports authenticated forms of communication, we require this information to perform an authentication with Plex. This information is used ONLY to perform Plex authencation and is not saved. We do however save a resulting token that is unique that is saved so you do not have to perform authentication again.
 
  ## Requirements
 
- We have done everything in our power to limit the dependancies this application has and for most Linux users should have it installed. However in case you do not you will require the following packages
+ We have done everything in our power to limit the dependancies this application has and for most users, it should have it installed. However in case you do not you will require the following:
 
-  - PowerShell 5 or later - PowerShell 5 is included with Windows 7.
+  - PowerShell 5 or later - PowerShell 5 is available for Windows 7 and up.
 
   or
 
@@ -33,7 +34,7 @@ A command line tool to enable usage of the [MediaButler Server](https://github.c
 
  ## Installing and Using
 
- The simplest method would be to either download the file manually or cloning this git repository, marking the file as executable and running it.
+ The simplest method would be to either download the file manually or cloning this git repository.
 
      git clone https://github.com/MediaButler/CLI-Windows.git
 
