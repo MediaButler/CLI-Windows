@@ -1,5 +1,6 @@
 # MediaButler Windows CLI Utility
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/754bc412d9d8470e913e88f217ec92c3)](https://app.codacy.com/app/HalianElf/CLI-Windows?utm_source=github.com&utm_medium=referral&utm_content=MediaButler/CLI-Windows&utm_campaign=Badge_Grade_Dashboard)
 [![Chat on Discord](https://img.shields.io/discord/379374148436230144.svg)](https://discord.gg/nH9t5sm)
 [![made-with-powershell](https://img.shields.io/badge/Made%20with-Powershell-1f425f.svg)](https://github.com/PowerShell/PowerShell)
 [![](https://badge-size.herokuapp.com/MediaButler/CLI-Windows/master/mediabutler.ps1)](https://github.com/MediaButler/CLI-Windows/blob/master/mediabutler.ps1)
