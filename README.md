@@ -1,4 +1,4 @@
-<p align="center"><img src="https://raw.githubusercontent.com/christronyxyocum/mb-setup-utility/assets/Images/mb_small.png"><img src="https://raw.githubusercontent.com/christronyxyocum/mb-setup-utility/assets/Images/ps_small.jpg"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/christronyxyocum/mb-setup-utility/assets/Images/mb_small.png"><img src="https://raw.githubusercontent.com/christronyxyocum/mb-setup-utility/assets/Images/ps_small.png"></p>
 
 # MediaButler Windows CLI Utility
 
