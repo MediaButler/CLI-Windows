@@ -378,6 +378,7 @@ function checkAdmin() {
 	$formattedURL = [System.String]::Concat(($userData.mbURL), 'user/@me/')
 	try {
 		$response = Invoke-WebRequest -Uri $formattedURL -Method GET -Headers $headers -TimeoutSec 10 -UseBasicParsing
+		Write-Debug $response
 		$response = $response | ConvertFrom-Json
 		if ($response.permissions -contains "ADMIN") {
 			$script:isAdmin = $true
@@ -1748,6 +1749,10 @@ function manageIssues() {
 
 # Print the playback history for the current user/server
 function playbackHistory() {
+	if (-Not($setupChecks.tautulli)) {
+		Write-ColorOutput -ForegroundColor red -MessageData "Your Tautulli endpoint has not been configured yet!"
+		playbackMenu
+	}
 	$headers = @{
 		"Content-Type"="application/json"
 		"MB-Client-Identifier"=$uuid;
@@ -1803,6 +1808,10 @@ function playbackHistory() {
 
 # Get what is currently playing on the server
 function nowPlaying() {
+	if (-Not($setupChecks.tautulli)) {
+		Write-ColorOutput -ForegroundColor red -MessageData "Your Tautulli endpoint has not been configured yet!"
+		playbackMenu
+	}
 	$headers = @{
 		"Content-Type"="application/json"
 		"MB-Client-Identifier"=$uuid;
