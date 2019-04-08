@@ -1,3 +1,5 @@
+<p align="center"><img src="https://raw.githubusercontent.com/christronyxyocum/mb-setup-utility/assets/Images/mb_small.png"><img src="https://raw.githubusercontent.com/christronyxyocum/mb-setup-utility/assets/Images/ps_small.jpg"></p>
+
 # MediaButler Windows CLI Utility
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/569a11e2f08d48edab7c57404417ba29)](https://www.codacy.com/app/HalianElf/CLI-Windows?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MediaButler/CLI-Windows&amp;utm_campaign=Badge_Grade)
