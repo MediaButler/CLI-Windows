@@ -1202,11 +1202,19 @@ function setupArr($ans) {
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -MessageData "Checking that the provided $arr URL is valid..."
 		try {
-			$response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10 -MaximumRedirection 0
+			$request = [System.Net.WebRequest]::Create($url)
+			$request.AllowAutoRedirect=$false
+			$response=$request.GetResponse()
+			if ($response.GetResponseHeader("Location") -like "/login*") {
+				$response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10 -MaximumRedirection 1
+			} else {
+				$response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10 -MaximumRedirection 0
+			}
 			[String]$title = $response -split "`n" | Select-String -Pattern '<title>'
 		} catch {
 			Write-Debug $_.Exception.Message
 		}
+		Write-Debug $title
 		if ($title -like "*$($arr.Substring(0,6))*") {
 			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
 			$valid = $true
