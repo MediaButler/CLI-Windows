@@ -1205,11 +1205,13 @@ function setupArr($ans) {
 			$request = [System.Net.WebRequest]::Create($url)
 			$request.AllowAutoRedirect=$false
 			$response=$request.GetResponse()
-			if ($response.GetResponseHeader("Location") -like "/login*") {
+			Write-Debug $response.GetResponseHeader("Location")
+			if ($response.GetResponseHeader("Location") -like "*/login*") {
 				$response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10 -MaximumRedirection 1
 			} else {
 				$response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10 -MaximumRedirection 0
 			}
+			$title = ""
 			[String]$title = $response -split "`n" | Select-String -Pattern '<title>'
 		} catch {
 			Write-Debug $_.Exception.Message
