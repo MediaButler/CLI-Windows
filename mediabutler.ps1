@@ -966,26 +966,26 @@ function setupTautulli() {
 		if ($lastChar -ne "/") {
 			$tauURL = "$tauURL/"
 		}
-		Write-Information ""
-		Write-ColorOutput -ForegroundColor gray -MessageData "Checking that the provided Tautulli URL is valid..."
-		try {
-			$formattedURL = [System.String]::Concat(($tauURL), 'auth/login')
-			$response = Invoke-WebRequest -Uri $formattedURL -TimeoutSec 10 -UseBasicParsing
-			[String]$title = $response -split "`n" | Select-String -Pattern '<title>'
-		} catch {
-			Write-Debug $_.Exception.Message
-		}
-		if ($title -like "*Tautulli*") {
-			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
-			$valid = $true
-		} else {
-			Write-ColorOutput -ForegroundColor red -MessageData "There was an error while attempting to validate the provided URL!"
-			$valid = $false
-		}
-	} while (-Not($valid))
+		#Write-Information ""
+		#Write-ColorOutput -ForegroundColor gray -MessageData "Checking that the provided Tautulli URL is valid..."
+		#try {
+		#	$formattedURL = [System.String]::Concat(($tauURL), 'auth/login')
+		#	$response = Invoke-WebRequest -Uri $formattedURL -TimeoutSec 10 -UseBasicParsing
+		#	[String]$title = $response -split "`n" | Select-String -Pattern '<title>'
+		#} catch {
+		#	Write-Debug $_.Exception.Message
+		#}
+		#if ($title -like "*Tautulli*") {
+		#	Write-ColorOutput -ForegroundColor green -MessageData "Success!"
+		#	$valid = $true
+		#} else {
+		#	Write-ColorOutput -ForegroundColor red -MessageData "There was an error while attempting to validate the provided URL!"
+		#	$valid = $false
+		#}
+	#} while (-Not($valid))
 
 	# API Key
-	do {
+	#do {
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -MessageData "Please enter your Tautulli API key"
 		$tauAPI = Read-Host -AsSecureString
@@ -993,17 +993,20 @@ function setupTautulli() {
 		$tauAPI = $credentials.GetNetworkCredential().Password
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -MessageData "Testing that the provided Tautulli API Key is valid..."
+		$err = $null
 		try {
 			$response = Invoke-WebRequest -Uri $tauURL"api/v2?apikey="$tauAPI"&cmd=arnold" -TimeoutSec 10 -UseBasicParsing
+			Write-Debug $response
 			$response = $response | ConvertFrom-Json
 		} catch {
+			$err = $_.Exception.Response.StatusCode
 			Write-Debug $_.Exception.Message
 		}
-		if ($null -eq $response.response.message) {
+		if (($null -eq $response.response.message) -And ($null -eq $err)) {
 			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
 			$valid = $true
 		} else {
-			Write-ColorOutput -ForegroundColor red -MessageData "There was an error while attempting to validate the provided API key!"
+			Write-ColorOutput -ForegroundColor red -MessageData "There was an error while attempting to validate the information you provided!"
 			$valid = $false
 		}
 	} while (-Not($valid))
@@ -1199,43 +1202,44 @@ function setupArr($ans) {
 		if ($lastChar -ne "/") {
 			$url = "$url/"
 		}
-		Write-Information ""
-		Write-ColorOutput -ForegroundColor gray -MessageData "Checking that the provided $arr URL is valid..."
-		try {
-			$request = [System.Net.WebRequest]::Create($url)
-			$request.AllowAutoRedirect=$false
-			$response=$request.GetResponse()
-			Write-Debug $response.GetResponseHeader("Location")
-			if ($response.GetResponseHeader("Location") -like "*/login*") {
-				$response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10 -MaximumRedirection 1
-			} else {
-				$response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10 -MaximumRedirection 0
-			}
-			$title = ""
-			[String]$title = $response -split "`n" | Select-String -Pattern '<title>'
-		} catch {
-			Write-Debug $_.Exception.Message
-		}
-		Write-Debug $title
-		if ($title -like "*$($arr.Substring(0,6))*") {
-			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
-			$valid = $true
-		} else {
-			Write-ColorOutput -ForegroundColor red -MessageData "There was an error while attempting to validate the provided URL!"
-			$valid = $false
-		}
-	} while (-Not($valid))
+		#Write-Information ""
+		#Write-ColorOutput -ForegroundColor gray -MessageData "Checking that the provided $arr URL is valid..."
+		#$title = ""
+		#try {
+		#	$request = [System.Net.WebRequest]::Create($url)
+		#	$request.AllowAutoRedirect=$false
+		#	$response=$request.GetResponse()
+		#	Write-Debug $response.GetResponseHeader("Location")
+		#	if ($response.GetResponseHeader("Location") -like "*/login*") {
+		#		$response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10 -MaximumRedirection 1
+		#	} else {
+		#		$response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10 -MaximumRedirection 0
+		#	}
+		#	[String]$title = $response -split "`n" | Select-String -Pattern '<title>'
+		#} catch {
+		#	Write-Debug $_.Exception.Message
+		#}
+		#Write-Debug $title
+		#if ($title -like "*$($arr.Substring(0,6))*") {
+		#	Write-ColorOutput -ForegroundColor green -MessageData "Success!"
+		#	$valid = $true
+		#} else {
+		#	Write-ColorOutput -ForegroundColor red -MessageData "There was an error while attempting to validate the provided URL!"
+		#	$valid = $false
+		#}
+	#} while (-Not($valid))
 
 	# API Key
 	Write-Information ""
 	Write-ColorOutput -ForegroundColor gray -MessageData  "Please enter your $arr API key"
-	do {
+	#do {
 		$err = ""
 		$apiKey = Read-Host -AsSecureString
 		$credentials = New-Object System.Management.Automation.PSCredential -ArgumentList "apiKey", $apiKey
 		$apiKey = $credentials.GetNetworkCredential().Password
 		Write-Information ""
-		Write-ColorOutput -ForegroundColor gray -MessageData "Testing that the provided $arr API Key is valid..."
+		Write-ColorOutput -ForegroundColor gray -MessageData "Testing that the provided $arr URL and API Key is valid..."
+		$success = $false
 		try {
 			$headers = @{
 				"X-Api-Key"=$apiKey
@@ -1243,15 +1247,16 @@ function setupArr($ans) {
 			$formattedURL = [System.String]::Concat(($url), 'api/system/status')
 			$response = Invoke-WebRequest -Uri $formattedURL -Headers $headers -TimeoutSec 10 -UseBasicParsing
 			$response = $response | ConvertFrom-Json
+			$success = $true
 		} catch {
 			$err = $_.Exception.Response.StatusCode
 		}
-		if ($err -eq "Unauthorized") {
-			Write-ColorOutput -ForegroundColor red -MessageData "There was an error while attempting to validate the provided API key!"
-			$valid = $false
-		} else {
+		if ($success -And ($response.startupPath -like "*$arr*")) {
 			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
 			$valid = $true
+		} else {
+			Write-ColorOutput -ForegroundColor red -MessageData "There was an error while attempting to validate the information you provided!"
+			$valid = $false
 		}
 	} while (-Not($valid))
 
