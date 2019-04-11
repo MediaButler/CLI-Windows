@@ -995,14 +995,16 @@ function setupTautulli() {
 		Write-ColorOutput -ForegroundColor gray -MessageData "Testing that the provided Tautulli API Key is valid..."
 		$err = $null
 		try {
-			$response = Invoke-WebRequest -Uri $tauURL"api/v2?apikey="$tauAPI"&cmd=arnold" -TimeoutSec 10 -UseBasicParsing
+			$response = Invoke-WebRequest -Uri $tauURL"api/v2?apikey="$tauAPI"&cmd=update_check" -TimeoutSec 10 -UseBasicParsing
 			Write-Debug $response
 			$response = $response | ConvertFrom-Json
+			$response2 = Invoke-WebRequest -Uri $tauURL"api/v2?apikey="$tauAPI"&cmd=arnold" -TimeoutSec 10 -UseBasicParsing
+			Write-Debug $response2
+			$response2 = $response2 | ConvertFrom-Json
 		} catch {
-			$err = $_.Exception.Response.StatusCode
 			Write-Debug $_.Exception.Message
 		}
-		if (($null -eq $response.response.message) -And ($null -eq $err)) {
+		if (($null -eq $response2.response.message) -And ($response.response.message -like "*Tautulli*")) {
 			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
 			$valid = $true
 		} else {
@@ -1239,7 +1241,6 @@ function setupArr($ans) {
 		$apiKey = $credentials.GetNetworkCredential().Password
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -MessageData "Testing that the provided $arr URL and API Key is valid..."
-		$success = $false
 		try {
 			$headers = @{
 				"X-Api-Key"=$apiKey
@@ -1247,11 +1248,12 @@ function setupArr($ans) {
 			$formattedURL = [System.String]::Concat(($url), 'api/system/status')
 			$response = Invoke-WebRequest -Uri $formattedURL -Headers $headers -TimeoutSec 10 -UseBasicParsing
 			$response = $response | ConvertFrom-Json
-			$success = $true
+			Write-Debug $response.startupPath
+			Write-Debug $response.version
 		} catch {
 			$err = $_.Exception.Response.StatusCode
 		}
-		if ($success -And ($response.startupPath -like "*$arr*")) {
+		if (($response.startupPath -like "*$arr*") -And (-Not [string]::IsNullOrEmpty($response.version))) {
 			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
 			$valid = $true
 		} else {
