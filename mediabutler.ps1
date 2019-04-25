@@ -1253,7 +1253,8 @@ function setupArr($ans) {
 		} catch {
 			$err = $_.Exception.Response.StatusCode
 		}
-		if (($response.startupPath -like "*$arr*") -And (-Not [string]::IsNullOrEmpty($response.version))) {
+		$arrtest = $arr.substring(0,6)
+		if ((($response.startupPath -like "*$arrtest*") -Or (($response.startupPath -like "*nzbdrone*") -And ($arrtest -eq "Sonarr"))) -And (-Not [string]::IsNullOrEmpty($response.version))) {
 			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
 			$valid = $true
 		} else {
