@@ -292,6 +292,10 @@ function getMbURL() {
 			if ([string]::IsNullOrEmpty($mbURL)) {
 				throw "Blank result"
 			}
+			$lastChar = $mbURL.SubString($mbURL.Length - 1)
+			if ($lastChar -ne "/") {
+				$mbURL = "$mbURL/"
+			}
 			Write-ColorOutput -ForegroundColor green -MessageData "Done!"
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor gray -MessageData "Is this the correct MediaButler URL?"
