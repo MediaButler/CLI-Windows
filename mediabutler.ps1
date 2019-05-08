@@ -74,7 +74,7 @@ function checkPlexAuth() {
 	if ([string]::IsNullOrEmpty($userData.authToken)) {
 		do {
 			Write-Information ""
-			Write-ColorOutput -ForegroundColor gray -MessageData "Welcome to the MediaButler Linux CLI Utility!"
+			Write-ColorOutput -ForegroundColor gray -MessageData "Welcome to the MediaButler Windows CLI Utility!"
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor gray -MessageData "First thing we need to get started are your Plex credentials."
 			Write-ColorOutput -ForegroundColor gray -MessageData "Please choose from one of the following options:"
