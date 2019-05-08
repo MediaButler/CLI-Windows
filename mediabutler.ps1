@@ -1253,7 +1253,7 @@ function setupArr($ans) {
 			Write-Debug $response.startupPath
 			Write-Debug $response.version
 		} catch {
-			$err = $_.Exception.Response.StatusCode
+			Write-Debug $_.Exception.Message
 		}
 		$arrtest = $arr.substring(0,6)
 		if ((($response.startupPath -like "*$arrtest*") -Or (($response.startupPath -like "*nzbdrone*") -And ($arrtest -eq "Sonarr"))) -And (-Not [string]::IsNullOrEmpty($response.version))) {
