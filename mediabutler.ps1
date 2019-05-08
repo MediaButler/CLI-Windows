@@ -266,7 +266,7 @@ function testMB($url) {
 		if (($apiVersion[0] -gt 1) -Or ($apiVersion[1] -gt 1) -Or ($apiVersion[2] -ge 12)) {
 			$isMB = $true;
 		}
-	} catch [System.Net.WebException] {
+	} catch {
 		Write-Debug $_.Exception.Message
 		$isMB = $false;
 	}
