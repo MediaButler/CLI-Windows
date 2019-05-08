@@ -997,7 +997,6 @@ function setupTautulli() {
 		$tauAPI = $credentials.GetNetworkCredential().Password
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -MessageData "Testing that the provided Tautulli API Key is valid..."
-		$err = $null
 		try {
 			$response = Invoke-WebRequest -Uri $tauURL"api/v2?apikey="$tauAPI"&cmd=update_check" -TimeoutSec 10 -UseBasicParsing
 			Write-Debug $response
@@ -1239,7 +1238,6 @@ function setupArr($ans) {
 	Write-Information ""
 	Write-ColorOutput -ForegroundColor gray -MessageData  "Please enter your $arr API key"
 	#do {
-		$err = ""
 		$apiKey = Read-Host -AsSecureString
 		$credentials = New-Object System.Management.Automation.PSCredential -ArgumentList "apiKey", $apiKey
 		$apiKey = $credentials.GetNetworkCredential().Password
