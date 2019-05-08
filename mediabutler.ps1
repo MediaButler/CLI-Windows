@@ -74,7 +74,7 @@ function checkPlexAuth() {
 	if ([string]::IsNullOrEmpty($userData.authToken)) {
 		do {
 			Write-Information ""
-			Write-ColorOutput -ForegroundColor gray -MessageData "Welcome to the MediaButler Linux CLI Utility!"
+			Write-ColorOutput -ForegroundColor gray -MessageData "Welcome to the MediaButler Windows CLI Utility!"
 			Write-Information ""
 			Write-ColorOutput -ForegroundColor gray -MessageData "First thing we need to get started are your Plex credentials."
 			Write-ColorOutput -ForegroundColor gray -MessageData "Please choose from one of the following options:"
@@ -266,7 +266,7 @@ function testMB($url) {
 		if (($apiVersion[0] -gt 1) -Or ($apiVersion[1] -gt 1) -Or ($apiVersion[2] -ge 12)) {
 			$isMB = $true;
 		}
-	} catch [System.Net.WebException] {
+	} catch {
 		Write-Debug $_.Exception.Message
 		$isMB = $false;
 	}
@@ -997,7 +997,6 @@ function setupTautulli() {
 		$tauAPI = $credentials.GetNetworkCredential().Password
 		Write-Information ""
 		Write-ColorOutput -ForegroundColor gray -MessageData "Testing that the provided Tautulli API Key is valid..."
-		$err = $null
 		try {
 			$response = Invoke-WebRequest -Uri $tauURL"api/v2?apikey="$tauAPI"&cmd=update_check" -TimeoutSec 10 -UseBasicParsing
 			Write-Debug $response
@@ -1239,7 +1238,6 @@ function setupArr($ans) {
 	Write-Information ""
 	Write-ColorOutput -ForegroundColor gray -MessageData  "Please enter your $arr API key"
 	#do {
-		$err = ""
 		$apiKey = Read-Host -AsSecureString
 		$credentials = New-Object System.Management.Automation.PSCredential -ArgumentList "apiKey", $apiKey
 		$apiKey = $credentials.GetNetworkCredential().Password
