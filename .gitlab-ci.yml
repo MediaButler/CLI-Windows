@@ -22,10 +22,10 @@ test_docker:
 deploy_docker_int:
   stage: deploy
   before_script:
-    - docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN reg.mediabutler.io
+    - docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN reg.mediabutler.app
   script:
-    - docker build -t reg.mediabutler.io/mediabutler/windows-cli-utility:${CI_COMMIT_REF_NAME} .
-    - docker push reg.mediabutler.io/mediabutler/windows-cli-utility:${CI_COMMIT_REF_NAME}
+    - docker build -t reg.mediabutler.app/mediabutler/windows-cli-utility:${CI_COMMIT_REF_NAME} .
+    - docker push reg.mediabutler.app/mediabutler/windows-cli-utility:${CI_COMMIT_REF_NAME}
 deploy_docker_ext:
   stage: deploy
   before_script:
