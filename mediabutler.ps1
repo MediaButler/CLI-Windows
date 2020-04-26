@@ -1247,16 +1247,19 @@ function setupArr($ans) {
 			$headers = @{
 				"X-Api-Key"=$apiKey
 			};
-			$formattedURL = [System.String]::Concat(($url), 'api/system/status')
-			$response = Invoke-WebRequest -Uri $formattedURL -Headers $headers -TimeoutSec 10 -UseBasicParsing
-			$response = $response | ConvertFrom-Json
+			$formattedURLbackup = [System.String]::Concat(($url), 'api/system/backup')
+			$formattedURLstatus = [System.String]::Concat(($url), 'api/system/status')
+			$responseBackup = Invoke-WebRequest -Uri $formattedURLbackup -Headers $headers -TimeoutSec 10 -UseBasicParsing
+			$responseStatus = Invoke-WebRequest -Uri $formattedURLstatus -Headers $headers -TimeoutSec 10 -UseBasicParsing
+			$responseBackup = $responseBackup | ConvertFrom-Json
+			$responseStatus = $responseStatus | ConvertFrom-Json
 			Write-Debug $response.startupPath
 			Write-Debug $response.version
 		} catch {
 			Write-Debug $_.Exception.Message
 		}
 		$arrtest = $arr.substring(0,6)
-		if ((($response.startupPath -like "*$arrtest*") -Or (($response.startupPath -like "*nzbdrone*") -And ($arrtest -eq "Sonarr"))) -And (-Not [string]::IsNullOrEmpty($response.version))) {
+		if (($responseBackup.name -like "$arrtest*") -And (-Not [string]::IsNullOrEmpty($responseStatus.version))) {
 			Write-ColorOutput -ForegroundColor green -MessageData "Success!"
 			$valid = $true
 		} else {
